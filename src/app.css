@@ -1,0 +1,67 @@
+:root {
+  /* Surfaces — subtle light gray, slightly off-white. */
+  --bg: #f0f0f0;          /* page background */
+  --panel: #f7f7f7;       /* card surface — sits above bg */
+  --panel-2: #e8e8e8;     /* nested elevation (details, fretboard background) */
+  --notation-bg: #fcfcfc; /* near-white for music notation (must be light for readability) */
+  --border: #d4d4d4;      /* gentle gray */
+  --border-strong: #b4b4b4;
+
+  /* Text */
+  --text: #1f2330;        /* dark slate */
+  --text-dim: #6b7280;    /* mid gray */
+  --text-mute: #9a9886;   /* very light, e.g. fret numbers */
+
+  /* Accent — medium purple */
+  --accent: #7c3aed;       /* violet for primary actions */
+  --accent-hover: #6d28d9;
+  --accent-soft: #ede9fe;  /* fill for highlighted chips */
+  --accent-text-on: #ffffff; /* text color when sitting on a solid --accent surface */
+
+  /* Open-string indicator chip (used to be cyan #38bdf8) */
+  --open-bg: #d6f0fa;
+  --open-text: #0369a1;
+
+  /* Scrim + shadow */
+  --scrim: rgba(31, 35, 48, 0.32);
+  --shadow: 0 8px 24px rgba(31, 35, 48, 0.15);
+
+  /* Fretboard SVG palette */
+  --fb-bg: #fafafa;             /* fretboard surface */
+  --fb-string: #7a7a7a;          /* steel-string gray */
+  --fb-fret: #b8b8b8;            /* metallic fret line */
+  --fb-nut: #1f2330;             /* nut (the heavy line at fret 0) */
+  --fb-marker: #888888;          /* inlay dots */
+  --fb-label-dim: #6b7280;        /* string-name labels, fret numbers */
+  --fb-note-fill: #f0f0f0;        /* non-root note dot fill */
+  --fb-note-stroke: #1f2330;      /* note dot outline */
+  --fb-root-fill: #f97316;        /* highlighted root note */
+
+  /* Error */
+  --danger-bg: rgba(220, 38, 38, 0.1);
+  --danger-text: #b91c1c;
+  --danger-border: rgba(220, 38, 38, 0.3);
+
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+}
