@@ -4,6 +4,8 @@ import {
   mirrorAscMidi,
   intervalWalkAscMidi,
   variantSequenceMidi,
+  arpUp,
+  arpDown,
 } from './variants';
 import { SCALES } from '../theory/scales';
 import { midiOf } from '../theory/notes';
@@ -168,5 +170,50 @@ describe('variantSequenceMidi (asc + desc by reverse)', () => {
     // Desc first pair (reversed direction): [C3, E2] (high root and a 6th below)
     expect(seq[16]).toBe(midiOf('C', 3));
     expect(seq[17]).toBe(midiOf('E', 2));
+  });
+});
+
+describe('arpUp', () => {
+  test('triad on C major degree 0 = [C E G]', () => {
+    expect(arpUp(cMaj, C2, 0, 3)).toEqual([
+      midiOf('C', 2),
+      midiOf('E', 2),
+      midiOf('G', 2),
+    ]);
+  });
+
+  test('7th-chord on C major degree 0 = [C E G B]', () => {
+    expect(arpUp(cMaj, C2, 0, 4)).toEqual([
+      midiOf('C', 2),
+      midiOf('E', 2),
+      midiOf('G', 2),
+      midiOf('B', 2),
+    ]);
+  });
+
+  test('triad on C major degree 7 (octave up) = [C(8va) E(8va) G(8va)]', () => {
+    expect(arpUp(cMaj, C2, 7, 3)).toEqual([
+      midiOf('C', 3),
+      midiOf('E', 3),
+      midiOf('G', 3),
+    ]);
+  });
+});
+
+describe('arpDown', () => {
+  test('triad on C major degree 0 = [C, A(below), F(below)]', () => {
+    expect(arpDown(cMaj, C2, 0, 3)).toEqual([
+      midiOf('C', 2),
+      midiOf('A', 1),
+      midiOf('F', 1),
+    ]);
+  });
+
+  test('triad on C major degree 7 = [C(8va) A F]', () => {
+    expect(arpDown(cMaj, C2, 7, 3)).toEqual([
+      midiOf('C', 3),
+      midiOf('A', 2),
+      midiOf('F', 2),
+    ]);
   });
 });

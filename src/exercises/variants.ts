@@ -88,6 +88,51 @@ export function intervalWalkAscMidi(
 }
 
 /**
+ * Build one arpeggio of `size` notes by stacking thirds (every other
+ * scale degree) UPWARD from starting degree `d`.
+ *
+ *   arpUp(majorScale, rootMidi=C2, d=0, size=3) → [C, E, G]
+ *   arpUp(majorScale, rootMidi=C2, d=1, size=4) → [D, F, A, C(8va)]
+ *
+ * Used by arpeggioCycleMidi. The "stack of thirds" abstraction relies on
+ * scaleDegreeMidi accepting arbitrary positive or negative degree
+ * indices across octaves, which it already does.
+ */
+export function arpUp(
+  scale: Scale,
+  rootMidi: number,
+  d: number,
+  size: number,
+): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < size; i++) {
+    out.push(scaleDegreeMidi(scale, rootMidi, d + 2 * i));
+  }
+  return out;
+}
+
+/**
+ * Build one arpeggio of `size` notes by stacking thirds DOWNWARD from
+ * starting degree `d`. This is NOT the up-stack reversed — it's the
+ * stack going down from the root.
+ *
+ *   arpDown(majorScale, rootMidi=C2, d=0, size=3) → [C, A(below), F(below)]
+ *   arpDown(majorScale, rootMidi=C2, d=7, size=3) → [C(8va), A, F]
+ */
+export function arpDown(
+  scale: Scale,
+  rootMidi: number,
+  d: number,
+  size: number,
+): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < size; i++) {
+    out.push(scaleDegreeMidi(scale, rootMidi, d - 2 * i));
+  }
+  return out;
+}
+
+/**
  * Walking-interval exercises play through the scale ascending with one
  * interval direction, then descend with the REVERSED interval direction.
  *
