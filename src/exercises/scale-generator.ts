@@ -357,19 +357,22 @@ export function isHandPositionMeaningful(
   scale: Scale,
   variant: Variant,
 ): boolean {
+  if (variant.kind === 'arpeggioCycle') return false;
   if (variant.kind !== 'intervalWalk') return true;
   return walkingPairMaxSemitones(scale, variant) < 7;
 }
 
 /**
- * Canonical hand position for a wide-interval walking variant — used
- * when {@link isHandPositionMeaningful} is false. Scale-up + interval-up
- * leads with the index finger (front); the inverse leads with the
- * pinky (back). Only meaningful for intervalWalk variants.
+ * Canonical hand position for variants where the user's hand-position
+ * choice is overridden by the variant shape — wide walking intervals
+ * (5ths+) and all arpeggio cycles. Walking variants: scale-up + interval-up
+ * leads with the index finger (front); inverse leads with the pinky (back).
+ * Arpeggio cycles: always front (low root, hand climbs from there).
  */
-export function canonicalHandPositionForWideWalk(
+export function canonicalHandPositionForVariant(
   variant: Variant,
 ): HandPosition {
+  if (variant.kind === 'arpeggioCycle') return 'front';
   if (variant.kind !== 'intervalWalk') return 'front';
   return variant.intervalDir === 'down' ? 'back' : 'front';
 }

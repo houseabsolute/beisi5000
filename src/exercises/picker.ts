@@ -19,7 +19,7 @@ import {
   lowestDegreeOffsetSemitones,
   startConstraintsForVariant,
   isHandPositionMeaningful,
-  canonicalHandPositionForWideWalk,
+  canonicalHandPositionForVariant,
 } from './scale-generator';
 import type { Settings } from '../stores/settings';
 
@@ -271,7 +271,7 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
           if (variant.interval > maxInterval) continue;
         }
         if (!isHandPositionMeaningful(scale, variant)) {
-          plan.push({ variant, hp: canonicalHandPositionForWideWalk(variant) });
+          plan.push({ variant, hp: canonicalHandPositionForVariant(variant) });
         } else {
           for (const hp of s.enabledHandPositions) {
             plan.push({ variant, hp });
