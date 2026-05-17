@@ -41,9 +41,10 @@ State: 214 unit tests passing, svelte-check clean. Universe currently 17,058 exe
 
 - [x] **App name decision** — landed on **BèiSī 5000** (display) / `beisi5000` (npm + Render slug). `package.json#name`, `index.html`, `App.svelte`, and `render.yaml` all updated.
 - [x] **Render.com deploy** — live on Render.com via the `render.yaml` blueprint. Auto-deploys on push to default branch.
-- [ ] **Visual mobile verification on a real phone** — on the Render URL. Confirm panels, AlphaTab, fretboard, and metronome controls all behave at 375–414px.
-- [ ] **Practice ergonomics** — keyboard shortcuts (Space = metronome start/stop, N = next, P = previous), "Previous exercise" button walking the picked-history ring backward, persist BrowsePanel filters across reloads.
-- [ ] **Bundle size** — production JS is ~1.3 MB; AlphaTab is the bulk. Lazy-loading AlphaTab via dynamic import would drop the initial payload to ~200 KB.
+- [x] **Visual mobile verification on a real phone** — verified on the deployed Render URL: panels, AlphaTab, fretboard, and metronome controls all behave.
+- [x] **Practice ergonomics** — Space toggles the metronome, N picks the next exercise, P walks browser history back (Previous + Next UI buttons mirror these). BrowsePanel filters persist to localStorage under `bass-practice:browse-filters:v1`.
+
+Bundle size cleanup (lazy-load AlphaTab via dynamic import, ~1.3 MB → ~200 KB) was considered and intentionally deferred — the app loads fine over Render's CDN and is for personal use; not worth the code-split complexity right now.
 
 ### Future passes (not in scope for the current iteration)
 - Arpeggios (triads, 7ths, 9ths) with cycle direction + note direction.
