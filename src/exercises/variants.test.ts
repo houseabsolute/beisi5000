@@ -309,3 +309,54 @@ describe('arpeggioCycleMidi — 13th-chord allUp (size = scale length)', () => {
     ]);
   });
 });
+
+describe('arpeggioCycleMidi — zigzag (triad)', () => {
+  test('asc half matches worked example [CEG][AFD][EGB][CAF][GBD][ECA][BDF][GEC]', () => {
+    const seq = arpeggioCycleMidi(cMaj, C2, 3, 'zigzag');
+    // Note count: 2 * 8 * 3 − 1 = 47 (desc drops first note to avoid pivot dupe).
+    expect(seq).toHaveLength(47);
+
+    // 8 arpeggios × 3 notes = 24 notes in asc half
+    const ascExpected = [
+      midiOf('C', 2), midiOf('E', 2), midiOf('G', 2),  // [C E G]
+      midiOf('A', 2), midiOf('F', 2), midiOf('D', 2),  // [A F D]
+      midiOf('E', 2), midiOf('G', 2), midiOf('B', 2),  // [E G B]
+      midiOf('C', 3), midiOf('A', 2), midiOf('F', 2),  // [C(8va) A F]
+      midiOf('G', 2), midiOf('B', 2), midiOf('D', 3),  // [G B D(8va)]
+      midiOf('E', 3), midiOf('C', 3), midiOf('A', 2),  // [E(8va) C(8va) A]
+      midiOf('B', 2), midiOf('D', 3), midiOf('F', 3),  // [B D(8va) F(8va)]
+      midiOf('G', 3), midiOf('E', 3), midiOf('C', 3),  // [G(8va) E(8va) C(8va)]
+    ];
+    expect(seq.slice(0, 24)).toEqual(ascExpected);
+  });
+
+  test('desc is reverse(asc) with first note dropped', () => {
+    const seq = arpeggioCycleMidi(cMaj, C2, 3, 'zigzag');
+    const asc = seq.slice(0, 24);
+    const desc = seq.slice(24);
+    const expectedDesc = asc.slice().reverse().slice(1);
+    expect(desc).toEqual(expectedDesc);
+  });
+
+  test('final note pins to low root', () => {
+    const seq = arpeggioCycleMidi(cMaj, C2, 3, 'zigzag');
+    expect(seq[seq.length - 1]).toBe(midiOf('C', 2));
+  });
+});
+
+describe('arpeggioCycleMidi — zigzag (9th-chord, size > 3 case)', () => {
+  test('every arp boundary connects by a single scale step', () => {
+    const seq = arpeggioCycleMidi(cMaj, C2, 5, 'zigzag');
+    // size=5 → 8 arps × 5 notes = 40 in asc half. Check arp boundaries
+    // 0→1, 1→2, ..., 6→7. Boundary between arp i and arp i+1 is at
+    // positions 5*(i+1)-1 (end of arp i) and 5*(i+1) (start of arp i+1).
+    const ascNotes = seq.slice(0, 40);
+    for (let i = 0; i < 7; i++) {
+      const lastOfArp = ascNotes[5 * (i + 1) - 1];
+      const firstOfNext = ascNotes[5 * (i + 1)];
+      // A scale step up = 1 or 2 semitones (whole or half step in major).
+      const diff = firstOfNext - lastOfArp;
+      expect([1, 2]).toContain(diff);
+    }
+  });
+});
