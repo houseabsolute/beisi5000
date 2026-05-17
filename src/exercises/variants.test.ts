@@ -198,6 +198,15 @@ describe('arpUp', () => {
       midiOf('G', 3),
     ]);
   });
+
+  test('7th-chord on C major degree 1 = [D F A C(8va)] (non-zero d, crosses octave boundary)', () => {
+    expect(arpUp(cMaj, C2, 1, 4)).toEqual([
+      midiOf('D', 2),
+      midiOf('F', 2),
+      midiOf('A', 2),
+      midiOf('C', 3),
+    ]);
+  });
 });
 
 describe('arpDown', () => {

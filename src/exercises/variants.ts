@@ -91,9 +91,6 @@ export function intervalWalkAscMidi(
  * Build one arpeggio of `size` notes by stacking thirds (every other
  * scale degree) UPWARD from starting degree `d`.
  *
- *   arpUp(majorScale, rootMidi=C2, d=0, size=3) → [C, E, G]
- *   arpUp(majorScale, rootMidi=C2, d=1, size=4) → [D, F, A, C(8va)]
- *
  * Used by arpeggioCycleMidi. The "stack of thirds" abstraction relies on
  * scaleDegreeMidi accepting arbitrary positive or negative degree
  * indices across octaves, which it already does.
@@ -114,10 +111,8 @@ export function arpUp(
 /**
  * Build one arpeggio of `size` notes by stacking thirds DOWNWARD from
  * starting degree `d`. This is NOT the up-stack reversed — it's the
- * stack going down from the root.
- *
- *   arpDown(majorScale, rootMidi=C2, d=0, size=3) → [C, A(below), F(below)]
- *   arpDown(majorScale, rootMidi=C2, d=7, size=3) → [C(8va), A, F]
+ * stack going down from the root, so the function exists separately
+ * rather than delegating to arpUp.
  */
 export function arpDown(
   scale: Scale,
