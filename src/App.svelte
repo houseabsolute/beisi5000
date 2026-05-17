@@ -463,6 +463,8 @@
         const sign = v.intervalDir === 'up' ? '+' : '-';
         return `Scale walk ${sign}${v.interval}`;
       }
+      case 'arpeggioCycle':
+        return 'Arpeggio (placeholder)';
     }
   }
 </script>

@@ -104,6 +104,8 @@ function variantTag(v: Variant): string {
       return `mo-A ${v.octaves}oct`;
     case 'multiOctaveB':
       return `mo-B ${v.octaves}oct`;
+    case 'arpeggioCycle':
+      return 'arp placeholder';
   }
 }
 

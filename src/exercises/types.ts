@@ -5,6 +5,8 @@ import type { HandPosition } from '../theory/fingerings';
 
 export type ScaleDirection = 'up' | 'down' | 'updown';
 
+export type ArpDirection = 'allUp' | 'upDown' | 'downUp' | 'zigzag';
+
 export type Variant =
   | { kind: 'plain' }
   | { kind: 'consecutive'; groupSize: number }
@@ -15,7 +17,8 @@ export type Variant =
       intervalDir: 'up' | 'down';
     }
   | { kind: 'multiOctaveA'; octaves: number }
-  | { kind: 'multiOctaveB'; octaves: number };
+  | { kind: 'multiOctaveB'; octaves: number }
+  | { kind: 'arpeggioCycle'; size: 3 | 4 | 5 | 6 | 7; direction: ArpDirection };
 
 export interface ExerciseParams {
   scale: Scale;

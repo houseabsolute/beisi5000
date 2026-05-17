@@ -1414,6 +1414,8 @@ function describeVariant(v: ExerciseParams['variant'], scale: Scale): string {
       const sign = v.intervalDir === 'up' ? '+' : '-';
       return `Scale walk ${sign}${v.interval}`;
     }
+    case 'arpeggioCycle':
+      return 'Arpeggio (placeholder)';
   }
 }
 

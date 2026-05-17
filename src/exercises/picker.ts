@@ -136,6 +136,9 @@ export function paramsKey(p: ExerciseParams): string {
     case 'intervalWalk':
       variantKey = `walk:${p.variant.intervalDir === 'up' ? '+' : '-'}${p.variant.interval}`;
       break;
+    case 'arpeggioCycle':
+      variantKey = 'arpeggio:placeholder';
+      break;
   }
   return [
     p.tuning.id,
