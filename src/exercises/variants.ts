@@ -1,5 +1,5 @@
 import type { Scale } from '../theory/scales';
-import type { Variant } from './types';
+import type { Variant, ArpDirection } from './types';
 
 /**
  * Compute the MIDI value for a scale degree (0-indexed). Negative degrees
@@ -125,6 +125,83 @@ export function arpDown(
     out.push(scaleDegreeMidi(scale, rootMidi, d - 2 * i));
   }
   return out;
+}
+
+/**
+ * Cycle through every diatonic-third arpeggio rooted on each scale
+ * degree, ascending the scale then descending. Each arpeggio is `size`
+ * notes (3=triad, 4=7th, 5=9th, 6=11th, 7=13th).
+ *
+ * `direction` controls the note ordering WITHIN each arpeggio and which
+ * iteration shape the roots follow:
+ *
+ * - allUp / upDown / downUp: roots cycle 0..7 (asc) then 7..0 (desc),
+ *   8 arpeggios per half. The pivot arp (root 7 = octave-up root) plays
+ *   at the end of asc AND start of desc. Total notes = 16 * size.
+ *
+ * - zigzag: each arp starts a step above the previous arp's end,
+ *   alternating up/down. Asc plays 8 arpeggios. Desc is reverse(asc)
+ *   with the first note dropped to avoid doubling the pivot note.
+ *   Total notes = 16 * size - 1.
+ *
+ * See docs/superpowers/specs/2026-05-17-arpeggios-design.md for the
+ * worked example and the apex calculation.
+ */
+export function arpeggioCycleMidi(
+  scale: Scale,
+  rootMidi: number,
+  size: 3 | 4 | 5 | 6 | 7,
+  direction: ArpDirection,
+): number[] {
+  if (direction === 'zigzag') {
+    return arpeggioZigzag(scale, rootMidi, size);
+  }
+  return arpeggioConsecutive(scale, rootMidi, size, direction);
+}
+
+function arpeggioConsecutive(
+  scale: Scale,
+  rootMidi: number,
+  size: number,
+  direction: Exclude<ArpDirection, 'zigzag'>,
+): number[] {
+  const ascUp = direction === 'allUp' || direction === 'upDown';
+  const descUp = direction === 'allUp' || direction === 'downUp';
+  const out: number[] = [];
+  // Asc: roots 0..7 (8 arpeggios). Root 7 = octave-up.
+  for (let d = 0; d <= 7; d++) {
+    out.push(...(ascUp ? arpUp(scale, rootMidi, d, size) : arpDown(scale, rootMidi, d, size)));
+  }
+  // Desc: roots 7..0 (8 arpeggios). Pivot (root 7) plays twice.
+  for (let d = 7; d >= 0; d--) {
+    out.push(...(descUp ? arpUp(scale, rootMidi, d, size) : arpDown(scale, rootMidi, d, size)));
+  }
+  return out;
+}
+
+function arpeggioZigzag(
+  scale: Scale,
+  rootMidi: number,
+  size: number,
+): number[] {
+  // Asc half: 8 arpeggios, alternating UP/DOWN, each starting a step
+  // above where the previous ended.
+  const asc: number[] = [];
+  let d = 0;
+  let goingUp = true;
+  for (let i = 0; i < 8; i++) {
+    const arp = goingUp
+      ? arpUp(scale, rootMidi, d, size)
+      : arpDown(scale, rootMidi, d, size);
+    asc.push(...arp);
+    // Next arp starts a step above this arp's LAST degree.
+    d = (goingUp ? d + 2 * (size - 1) : d - 2 * (size - 1)) + 1;
+    goingUp = !goingUp;
+  }
+  // Desc = reverse(asc). Drop the first note of desc to avoid doubling
+  // the pivot note (asc's last note == desc's first note).
+  const desc = asc.slice().reverse().slice(1);
+  return [...asc, ...desc];
 }
 
 /**

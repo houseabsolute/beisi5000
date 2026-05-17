@@ -6,6 +6,7 @@ import {
   variantSequenceMidi,
   arpUp,
   arpDown,
+  arpeggioCycleMidi,
 } from './variants';
 import { SCALES } from '../theory/scales';
 import { midiOf } from '../theory/notes';
@@ -223,6 +224,88 @@ describe('arpDown', () => {
       midiOf('C', 3),
       midiOf('A', 2),
       midiOf('F', 2),
+    ]);
+  });
+});
+
+describe('arpeggioCycleMidi — allUp', () => {
+  test('triad in C major: 16 arpeggios × 3 notes = 48 notes', () => {
+    const seq = arpeggioCycleMidi(cMaj, C2, 3, 'allUp');
+    expect(seq).toHaveLength(48);
+    // First arp [C E G]
+    expect(seq.slice(0, 3)).toEqual([midiOf('C', 2), midiOf('E', 2), midiOf('G', 2)]);
+    // Last arp of asc half = high-root arp UP [C(8va) E(8va) G(8va)]
+    expect(seq.slice(21, 24)).toEqual([midiOf('C', 3), midiOf('E', 3), midiOf('G', 3)]);
+    // First arp of desc half = high-root arp UP again (the pivot doubling)
+    expect(seq.slice(24, 27)).toEqual([midiOf('C', 3), midiOf('E', 3), midiOf('G', 3)]);
+    // Last arp of desc half = low-root arp UP [C E G]
+    expect(seq.slice(45, 48)).toEqual([midiOf('C', 2), midiOf('E', 2), midiOf('G', 2)]);
+  });
+
+  test('final note is the top of low-root arp UP (G)', () => {
+    const seq = arpeggioCycleMidi(cMaj, C2, 3, 'allUp');
+    expect(seq[seq.length - 1]).toBe(midiOf('G', 2));
+    // Note: final is G (top of low-root arp UP), not the root itself.
+    // The pinned-root landing belongs to layOnFretboard, not the MIDI.
+  });
+});
+
+describe('arpeggioCycleMidi — upDown', () => {
+  test('triad in C major: asc plays up, desc plays down', () => {
+    const seq = arpeggioCycleMidi(cMaj, C2, 3, 'upDown');
+    expect(seq).toHaveLength(48);
+    // Asc first arp = [C E G] (up)
+    expect(seq.slice(0, 3)).toEqual([midiOf('C', 2), midiOf('E', 2), midiOf('G', 2)]);
+    // End of asc = high-root arp UP [C(8va) E(8va) G(8va)]
+    expect(seq.slice(21, 24)).toEqual([midiOf('C', 3), midiOf('E', 3), midiOf('G', 3)]);
+    // Start of desc = high-root arp DOWN [C(8va) A F]
+    expect(seq.slice(24, 27)).toEqual([midiOf('C', 3), midiOf('A', 2), midiOf('F', 2)]);
+    // Last arp of desc = low-root arp DOWN [C A(below) F(below)]
+    expect(seq.slice(45, 48)).toEqual([midiOf('C', 2), midiOf('A', 1), midiOf('F', 1)]);
+  });
+});
+
+describe('arpeggioCycleMidi — downUp', () => {
+  test('triad in C major: asc plays down, desc plays up', () => {
+    const seq = arpeggioCycleMidi(cMaj, C2, 3, 'downUp');
+    expect(seq).toHaveLength(48);
+    // Asc first arp = [C A(below) F(below)] (down from low root)
+    expect(seq.slice(0, 3)).toEqual([midiOf('C', 2), midiOf('A', 1), midiOf('F', 1)]);
+    // End of asc = high-root arp DOWN [C(8va) A F]
+    expect(seq.slice(21, 24)).toEqual([midiOf('C', 3), midiOf('A', 2), midiOf('F', 2)]);
+    // Start of desc = high-root arp UP [C(8va) E(8va) G(8va)]
+    expect(seq.slice(24, 27)).toEqual([midiOf('C', 3), midiOf('E', 3), midiOf('G', 3)]);
+  });
+});
+
+describe('arpeggioCycleMidi — C minor allUp (third on degree 1 is minor)', () => {
+  test('first arp in C natural minor is [C E♭ G]', () => {
+    const seq = arpeggioCycleMidi(SCALES.naturalMinor, C2, 3, 'allUp');
+    expect(seq[0]).toBe(midiOf('C', 2));
+    expect(seq[1]).toBe(midiOf('E', 2) - 1); // E♭
+    expect(seq[2]).toBe(midiOf('G', 2));
+  });
+});
+
+describe('arpeggioCycleMidi — D dorian triad downUp', () => {
+  test('first arp = D dorian triad played DOWN from D: [D, B(below), G(below)]', () => {
+    const D2 = midiOf('D', 2);
+    const seq = arpeggioCycleMidi(SCALES.dorian, D2, 3, 'downUp');
+    expect(seq.slice(0, 3)).toEqual([midiOf('D', 2), midiOf('B', 1), midiOf('G', 1)]);
+  });
+});
+
+describe('arpeggioCycleMidi — 13th-chord allUp (size = scale length)', () => {
+  test('each arp in C major 13th allUp contains all 7 scale notes', () => {
+    const seq = arpeggioCycleMidi(cMaj, C2, 7, 'allUp');
+    // 16 arpeggios × 7 notes = 112
+    expect(seq).toHaveLength(112);
+    // First arp: degrees 0,2,4,6,8,10,12 in scaleDegreeMidi semantics
+    // = C, E, G, B, D(8va), F(8va), A(8va)
+    expect(seq.slice(0, 7)).toEqual([
+      midiOf('C', 2), midiOf('E', 2), midiOf('G', 2),
+      midiOf('B', 2),
+      midiOf('D', 3), midiOf('F', 3), midiOf('A', 3),
     ]);
   });
 });
