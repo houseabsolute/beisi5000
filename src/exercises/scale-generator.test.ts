@@ -5,6 +5,8 @@ import {
   pickStartingPosition,
   layOnFretboard,
   generateExercise,
+  arpeggioCycleApex,
+  startConstraintsForVariant,
 } from './scale-generator';
 import { SCALES } from '../theory/scales';
 import { TUNINGS } from '../theory/tunings';
@@ -600,5 +602,58 @@ describe('pickStartingPosition — maxStringIndex constraint', () => {
       maxStringIndex: -1,
     });
     expect(pos).toBeNull();
+  });
+});
+
+describe('arpeggioCycleApex', () => {
+  test('triad in C major rooted at C2 → degree 11 = G3', () => {
+    expect(arpeggioCycleApex(SCALES.major, midiOf('C', 2), 3)).toBe(midiOf('G', 3));
+  });
+
+  test('7th-chord in C major → degree 13 = B3', () => {
+    expect(arpeggioCycleApex(SCALES.major, midiOf('C', 2), 4)).toBe(midiOf('B', 3));
+  });
+
+  test('13th-chord in C major → degree 19 = A4', () => {
+    expect(arpeggioCycleApex(SCALES.major, midiOf('C', 2), 7)).toBe(midiOf('A', 4));
+  });
+});
+
+describe('startConstraintsForVariant — arpeggio', () => {
+  test('4-string tuning → maxStringIndex = 1', () => {
+    const c = startConstraintsForVariant(
+      SCALES.major,
+      { kind: 'arpeggioCycle', size: 3, direction: 'allUp' },
+      TUNINGS.fourStringEADG,
+    );
+    expect(c.maxStringIndex).toBe(1);
+    expect(c.minStringIndex).toBe(0);
+  });
+
+  test('5-string tuning → maxStringIndex = 2', () => {
+    const c = startConstraintsForVariant(
+      SCALES.major,
+      { kind: 'arpeggioCycle', size: 7, direction: 'zigzag' },
+      TUNINGS.fiveStringBEADG,
+    );
+    expect(c.maxStringIndex).toBe(2);
+  });
+
+  test('6-string tuning → maxStringIndex = 2', () => {
+    const c = startConstraintsForVariant(
+      SCALES.major,
+      { kind: 'arpeggioCycle', size: 3, direction: 'allUp' },
+      TUNINGS.sixStringBEADGC,
+    );
+    expect(c.maxStringIndex).toBe(2);
+  });
+
+  test('non-arpeggio variants leave maxStringIndex undefined (back-compat)', () => {
+    const c = startConstraintsForVariant(
+      SCALES.major,
+      { kind: 'plain' },
+      TUNINGS.fourStringEADG,
+    );
+    expect(c.maxStringIndex).toBeUndefined();
   });
 });

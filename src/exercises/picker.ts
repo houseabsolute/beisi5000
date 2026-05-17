@@ -312,6 +312,7 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
           startPos = pickStartingPosition(rootPc, hp, tuning, {
             minMidi: constraints.minMidi,
             minStringIndex: constraints.minStringIndex,
+            maxStringIndex: constraints.maxStringIndex,
           });
         }
         if (!startPos) continue;

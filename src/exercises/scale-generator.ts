@@ -162,16 +162,37 @@ export function lowestDegreeOffsetSemitones(
 }
 
 /**
- * Build the start-position constraints (minMidi, minStringIndex) for a
- * variant. The picker uses these to surface only validly-playable
- * exercises; the generator uses the same values so its starting position
- * matches what the picker validated.
+ * Highest MIDI value any arpeggio cycle reaches, irrespective of
+ * direction. Apex sits at degree `7 + 2*(size − 1)` for all 4 directions
+ * (consecutive-root directions hit it at the end of the asc-half up-arp
+ * rooted at the octave; zigzag hits it at the start of its last
+ * down-arp). See spec for the derivation.
+ */
+export function arpeggioCycleApex(
+  scale: Scale,
+  rootMidi: number,
+  size: number,
+): number {
+  return scaleDegreeMidi(scale, rootMidi, 7 + 2 * (size - 1));
+}
+
+/**
+ * Build the start-position constraints (minMidi, minStringIndex,
+ * maxStringIndex) for a variant. The picker uses these to surface only
+ * validly-playable exercises; the generator uses the same values so its
+ * starting position matches what the picker validated.
  */
 export function startConstraintsForVariant(
   scale: Scale,
   variant: Variant,
   tuning: Tuning,
-): { minMidi?: number; minStringIndex: number } {
+): { minMidi?: number; minStringIndex: number; maxStringIndex?: number } {
+  if (variant.kind === 'arpeggioCycle') {
+    return {
+      minStringIndex: 0,
+      maxStringIndex: tuning.stringCount === 4 ? 1 : 2,
+    };
+  }
   if (variant.kind !== 'intervalWalk') return { minStringIndex: 0 };
   const lowestOffset = lowestDegreeOffsetSemitones(scale, variant);
   const minMidi =
@@ -1265,6 +1286,7 @@ export function generateExercise(params: ExerciseParams): Exercise {
           preferOpenStringRoot: !!useOpenStrings,
           minMidi: constraints.minMidi,
           minStringIndex: constraints.minStringIndex,
+          maxStringIndex: constraints.maxStringIndex,
         });
   if (!lowRootPos) {
     throw new Error(
