@@ -47,7 +47,13 @@ State: 214 unit tests passing, svelte-check clean. Universe currently 17,058 exe
 Bundle size cleanup (lazy-load AlphaTab via dynamic import, ~1.3 MB → ~200 KB) was considered and intentionally deferred — the app loads fine over Render's CDN and is for personal use; not worth the code-split complexity right now.
 
 ### Future passes (not in scope for the current iteration)
-- Arpeggios (triads, 7ths, 9ths) with cycle direction + note direction.
+- Arpeggios — **in progress** (design: [docs/superpowers/specs/2026-05-17-arpeggios-design.md](superpowers/specs/2026-05-17-arpeggios-design.md)). Current pass covers diatonic 7-note scales, sizes 3–7 (triad → 13th), four directions (allUp, upDown, downUp, zigzag), no hand-position user selection. Deferred sub-items (separate future passes):
+  - Open-string arpeggio variants.
+  - Inversions — arpeggios that don't start on the chord root.
+  - Selecting which scale degrees to root on (current pass always cycles 1 → 8).
+  - Chord-progression exercises — ii–V–I, cycle of fifths, diatonic 7ths chained, etc. — a different exercise unit (multi-key, not single-key cycle).
+  - Arpeggios on non-diatonic scales (pentatonics, chromatic, octatonic) — would need a different chord-tone-selection convention.
+  - User-selected hand position for arpeggios.
 - Big X — hand-agility exercise.
 - Spider — two-string crawl.
 - Other time signatures (currently 4/4 only).
