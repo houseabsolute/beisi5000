@@ -8,7 +8,7 @@ import {
 } from './scale-generator';
 import { SCALES } from '../theory/scales';
 import { TUNINGS } from '../theory/tunings';
-import { pitchClass, midiOf } from '../theory/notes';
+import { pitchClass, midiOf, type PitchClass } from '../theory/notes';
 import { multiOctaveAMidi } from './multi-octave';
 
 describe('ascendingScaleMidi', () => {
@@ -575,5 +575,30 @@ describe('generateExercise', () => {
     for (const [, count] of Object.entries(counts)) {
       expect(count).toBeLessThanOrEqual(3);
     }
+  });
+});
+
+describe('pickStartingPosition — maxStringIndex constraint', () => {
+  test('respects maxStringIndex (excludes higher-pitched strings)', () => {
+    // 4-string EADG. Pitch class for E (rootPc=4) is on string 0 (open) and
+    // string 2 fret 2 (D string + 2 = E). With maxStringIndex=1, only the
+    // lowest-2 strings are allowed → must pick string 0.
+    const tuning = TUNINGS.fourStringEADG;
+    const pos = pickStartingPosition(4 as PitchClass, 'front', tuning, {
+      maxStringIndex: 1,
+    });
+    expect(pos).not.toBeNull();
+    expect(pos!.string).toBeLessThanOrEqual(1);
+  });
+
+  test('returns null when no string ≤ maxStringIndex carries the root', () => {
+    // Pitch class for B (rootPc=11). On a 4-string EADG (strings 0..3 =
+    // E,A,D,G), B is reachable on string 0 fret 7, string 1 fret 2, etc.
+    // Constrain to maxStringIndex=-1 (no strings allowed) and check null.
+    const tuning = TUNINGS.fourStringEADG;
+    const pos = pickStartingPosition(11 as PitchClass, 'front', tuning, {
+      maxStringIndex: -1,
+    });
+    expect(pos).toBeNull();
   });
 });

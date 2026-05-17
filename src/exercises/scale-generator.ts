@@ -77,13 +77,20 @@ export function pickStartingPosition(
      * adjacent lower string at the same fret.
      */
     minStringIndex?: number;
+    /**
+     * Maximum string index (inclusive). Used by arpeggio-cycle variants
+     * to keep the root low on the neck so the cycle has room to climb.
+     * 4-string basses: 1 (bottom 2 strings). 5/6-string: 2.
+     */
+    maxStringIndex?: number;
   } = {},
 ): FretboardPosition | null {
   const maxFret = options.maxFret ?? DEFAULT_MAX_FRET;
   const minMidi = options.minMidi ?? -Infinity;
   const minStringIndex = options.minStringIndex ?? 0;
+  const maxStringIndex = options.maxStringIndex ?? tuning.stringCount - 1;
   const candidates: FretboardPosition[] = [];
-  for (let s = minStringIndex; s < tuning.stringCount; s++) {
+  for (let s = minStringIndex; s <= maxStringIndex; s++) {
     const openPc = midiPitchClass(tuning.openMidi[s]);
     // Find the lowest fret on this string that produces the pitch class.
     // If the open string + that fret is below minMidi, walk up an octave.
