@@ -137,6 +137,8 @@ export function paramsKey(p: ExerciseParams): string {
       variantKey = `walk:${p.variant.intervalDir === 'up' ? '+' : '-'}${p.variant.interval}`;
       break;
     case 'arpeggioCycle':
+      // Placeholder: every arpeggio hashes identically, breaking history dedup if >1 variant exists.
+      // Task 11 replaces this with `arpeggio:${variant.size}:${variant.direction}`.
       variantKey = 'arpeggio:placeholder';
       break;
   }
