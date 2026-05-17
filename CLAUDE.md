@@ -97,11 +97,15 @@ Filtered out at the picker because they need impossible key signatures:
 
 - `\tuning` needs parens: `\tuning (G2 D2 A1 E1)`.
 - `\ks` takes an identifier (`"Bb"`, `"C#minor"`), not a number.
-- `\clef F4` for bass.
+- `\clef F4` for bass. Per-bar `\clef G2` switches to treble — used by the emitter's `autoClef` option (3-beat-run rule on per-quarter classification).
 - AlphaTex string numbers are 1-indexed from HIGHEST pitch; the emitter flips our 0-indexed-from-low convention via `alphaTexString = tuning.stringCount - n.string`.
-- Per-note accidentals: `{acc forceSharp|forceFlat|forceNatural|forceDoubleSharp|forceDoubleFlat}`.
+- Per-note accidentals: `{acc forceSharp|forceFlat|forceNatural|forceDoubleSharp|forceDoubleFlat}`. Per-note finger numbers: `{lf N}` where N is shifted +1 (AlphaTex `lf 1` is thumb).
+- All per-note properties go in a SINGLE `{...}` block separated by spaces (`{acc forceFlat lf 2}`). Multiple consecutive `{}` blocks are not accepted.
 - Pad incomplete measures with rests (`r`) so the meter stays 4/4.
 - `notation.notationMode = SongBook` for proper multi-system spacing.
+- `player.scrollMode = ScrollMode.Off` even with `enablePlayer: false` — otherwise AlphaTab's scroll machinery pulls the document scroll down to the staff on first render.
+- `\ks Abminor` triggers an intermittent first-render parse error (`AT219 (9,5)→(9,4)` "no overload matched arguments"). The `keys.ts` `keySignatureLabelFor` special-cases `key.id === 'Ab'` in minor scales to emit `\ks Cb` (the relative major, same −7 flats). Per-note `forceFlat` overrides do the spelling work anyway.
+- AlphaTab paints a "rendered by alphaTab" SVG text at the bottom of every render (library is MPL-2.0, no attribution-in-render requirement). `ExerciseDisplay` strips it via `MutationObserver`.
 
 ## Workflow when the user reports a layout bug
 
@@ -113,9 +117,9 @@ Filtered out at the picker because they need impossible key signatures:
 
 ## Memory persistence
 
-Settings live in `localStorage` under `bass-practice:settings:v4`. Bumping the version invalidates old saves (no migration code). The store auto-saves on every change via `store.subscribe(persist)`.
-
-History (for recent-pick exclusion) is in-memory only — resets on reload.
+- Settings → `localStorage["bass-practice:settings:v4"]`. Bumping the version invalidates old saves (no migration code). The store auto-saves on every change via `store.subscribe(persist)`.
+- History (recent-pick exclusion ring) → `localStorage["bass-practice:history:v1"]`. Persisted so the exclusion survives reloads.
+- BrowsePanel filters → `localStorage["bass-practice:browse-filters:v1"]`. Persisted so the filter chips survive reloads.
 
 ## Conventions
 
