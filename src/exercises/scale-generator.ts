@@ -162,11 +162,11 @@ export function lowestDegreeOffsetSemitones(
 }
 
 /**
- * Highest MIDI value any arpeggio cycle reaches, irrespective of
- * direction. Apex sits at degree `7 + 2*(size − 1)` for all 4 directions
- * (consecutive-root directions hit it at the end of the asc-half up-arp
- * rooted at the octave; zigzag hits it at the start of its last
- * down-arp). See spec for the derivation.
+ * Highest MIDI value any arpeggio cycle reaches. All 4 directions
+ * happen to share the same apex because the asc-half up-arp rooted at
+ * the octave (consecutive-root) and zigzag's last down-arp's first
+ * note both land at degree `7 + 2*(size − 1)`. Picker uses this to
+ * gate combos that don't fit within fret 24.
  */
 export function arpeggioCycleApex(
   scale: Scale,
