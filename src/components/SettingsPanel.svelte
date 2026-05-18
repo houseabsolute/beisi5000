@@ -73,6 +73,34 @@
     }));
   }
 
+  function toggleArpSize(key: keyof typeof $settings.enabledArpeggios.sizes) {
+    settings.update((s) => ({
+      ...s,
+      enabledArpeggios: {
+        ...s.enabledArpeggios,
+        sizes: {
+          ...s.enabledArpeggios.sizes,
+          [key]: !s.enabledArpeggios.sizes[key],
+        },
+      },
+    }));
+  }
+
+  function toggleArpDirection(
+    key: keyof typeof $settings.enabledArpeggios.directions,
+  ) {
+    settings.update((s) => ({
+      ...s,
+      enabledArpeggios: {
+        ...s.enabledArpeggios,
+        directions: {
+          ...s.enabledArpeggios.directions,
+          [key]: !s.enabledArpeggios.directions[key],
+        },
+      },
+    }));
+  }
+
   function setMetro<K extends keyof typeof $settings.metronome>(
     k: K,
     v: (typeof $settings.metronome)[K],
@@ -220,6 +248,89 @@
         />
         Walking intervals (2nds through octaves, ↑ and ↓)
       </label>
+    </section>
+
+    <section>
+      <h3>Arpeggios</h3>
+      <p class="hint">Cycles diatonic chord arpeggios through the key. Only available on 7-note scales.</p>
+      <div class="arp-subhead">Sizes</div>
+      <div class="chips">
+        <label class="chip-toggle">
+          <input
+            type="checkbox"
+            checked={$settings.enabledArpeggios.sizes.triad}
+            onchange={() => toggleArpSize('triad')}
+          />
+          <span>Triad</span>
+        </label>
+        <label class="chip-toggle">
+          <input
+            type="checkbox"
+            checked={$settings.enabledArpeggios.sizes.seventh}
+            onchange={() => toggleArpSize('seventh')}
+          />
+          <span>7th</span>
+        </label>
+        <label class="chip-toggle">
+          <input
+            type="checkbox"
+            checked={$settings.enabledArpeggios.sizes.ninth}
+            onchange={() => toggleArpSize('ninth')}
+          />
+          <span>9th</span>
+        </label>
+        <label class="chip-toggle">
+          <input
+            type="checkbox"
+            checked={$settings.enabledArpeggios.sizes.eleventh}
+            onchange={() => toggleArpSize('eleventh')}
+          />
+          <span>11th</span>
+        </label>
+        <label class="chip-toggle">
+          <input
+            type="checkbox"
+            checked={$settings.enabledArpeggios.sizes.thirteenth}
+            onchange={() => toggleArpSize('thirteenth')}
+          />
+          <span>13th</span>
+        </label>
+      </div>
+      <div class="arp-subhead">Directions</div>
+      <div class="chips">
+        <label class="chip-toggle">
+          <input
+            type="checkbox"
+            checked={$settings.enabledArpeggios.directions.allUp}
+            onchange={() => toggleArpDirection('allUp')}
+          />
+          <span>↑↑ all up</span>
+        </label>
+        <label class="chip-toggle">
+          <input
+            type="checkbox"
+            checked={$settings.enabledArpeggios.directions.upDown}
+            onchange={() => toggleArpDirection('upDown')}
+          />
+          <span>↑↓ up then down</span>
+        </label>
+        <label class="chip-toggle">
+          <input
+            type="checkbox"
+            checked={$settings.enabledArpeggios.directions.downUp}
+            onchange={() => toggleArpDirection('downUp')}
+          />
+          <span>↓↑ down then up</span>
+        </label>
+        <label class="chip-toggle">
+          <input
+            type="checkbox"
+            checked={$settings.enabledArpeggios.directions.zigzag}
+            onchange={() => toggleArpDirection('zigzag')}
+          />
+          <span>↕ zigzag</span>
+        </label>
+      </div>
     </section>
 
     <section>
@@ -555,5 +666,17 @@
   }
   .tempo-row span {
     color: var(--text);
+  }
+  .arp-subhead {
+    margin: 10px 0 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .hint {
+    margin: 0 0 10px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.4;
   }
 </style>
