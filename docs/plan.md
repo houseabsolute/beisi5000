@@ -18,10 +18,11 @@ A randomized practice picker for bass scales, end-to-end:
 - Settings UI (slide-out side panel) — all 17 keys, all scales, all variants, all hand positions, metronome controls, display toggles.
 - All settings persisted to localStorage.
 
-State: 214 unit tests passing, svelte-check clean. Universe currently 17,058 exercises across 4 tunings. Walking-exercise layout scan: 0 cross-string ≥8 fret jumps.
+State: 272 unit tests passing, svelte-check clean. Universe currently 16,134 exercises across 4 tunings (was 17,058 pre-arpeggios; arpeggios add ~2,552 entries, with some adjustments to other categories from picker filter tightening). Walking-exercise and arpeggio layout scans: 0 cross-string ≥8 fret jumps.
 
 ## Recent additions (post-MVP polish)
 
+- [x] **Arpeggio cycle exercises.** 5 chord sizes (triad → 13th) × 4 directions (allUp / upDown / downUp / zigzag) on 14 diatonic 7-note scales × 17 keys. Picker emits one canonical entry per `(scale, key, size, direction)`; root constrained to the bottom 2 strings (4-string) / bottom 3 strings (5/6-string). Spec: [docs/superpowers/specs/2026-05-17-arpeggios-design.md](superpowers/specs/2026-05-17-arpeggios-design.md). New helpers in [src/exercises/variants.ts](../src/exercises/variants.ts) (`arpUp`, `arpDown`, `arpeggioCycleMidi`) and [src/exercises/scale-generator.ts](../src/exercises/scale-generator.ts) (`arpeggioCycleApex`, `maxStringIndex` constraint). `canonicalHandPositionForWideWalk` renamed to `canonicalHandPositionForVariant`.
 - [x] **DP-based lookahead in `layOnFretboard`** — `solveLookaheadDP` runs a layered DP over the last `PIN_LOOKAHEAD=6` notes; per-step cost is squared so the DP minimizes L2 movement and distributes string-crossings evenly instead of landing them on the final note. Applied to walking, consecutive, and mirror variants.
 - [x] **Per-string cap enforced in fall-back** — the picker's fall-back path now respects the per-string cap (3 notes max after leaving the starting string) EXCEPT on the top string, where multi-octave A's apex extension can run longer. Spreads asc/desc evenly without breaking the mo-A spiral.
 - [x] **Mid hand same-string cap from root** — middle-finger-on-root to pinky-on-(root+2) is the natural mid-hand span; any +3 from root forces cross-string instead of a same-string stretch. Fixes minor-pentatonic-mid and blues-mid fingerings.
@@ -47,7 +48,7 @@ State: 214 unit tests passing, svelte-check clean. Universe currently 17,058 exe
 Bundle size cleanup (lazy-load AlphaTab via dynamic import, ~1.3 MB → ~200 KB) was considered and intentionally deferred — the app loads fine over Render's CDN and is for personal use; not worth the code-split complexity right now.
 
 ### Future passes (not in scope for the current iteration)
-- Arpeggios — **in progress** (design: [docs/superpowers/specs/2026-05-17-arpeggios-design.md](superpowers/specs/2026-05-17-arpeggios-design.md)). Current pass covers diatonic 7-note scales, sizes 3–7 (triad → 13th), four directions (allUp, upDown, downUp, zigzag), no hand-position user selection. Deferred sub-items (separate future passes):
+- Arpeggios — further passes:
   - Open-string arpeggio variants.
   - Inversions — arpeggios that don't start on the chord root.
   - Selecting which scale degrees to root on (current pass always cycles 1 → 8).
