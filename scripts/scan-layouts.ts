@@ -55,6 +55,13 @@ for (const params of universe) {
       break;
     }
   }
+  // Arpeggio cycles inherently produce big cross-string jumps at
+  // arp-to-arp boundaries (the desc half walks roots down while playing
+  // each arp up, so transitions span ~13 scale degrees). The
+  // cross-string-≥8-fret heuristic was tuned for scales/walks and
+  // doesn't apply here — those jumps are correct, not bugs.
+  if (params.variant.kind === 'arpeggioCycle') continue;
+
   // The first note's position is the exercise's "home" — the cost
   // function pulls intermediate root MIDI occurrences back to it,
   // which legitimately creates big jumps after the layout has
