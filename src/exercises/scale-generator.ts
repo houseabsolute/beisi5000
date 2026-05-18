@@ -1441,7 +1441,7 @@ export function formatDisplayName(params: ExerciseParams): string {
   return `${root} ${params.scale.name}${openTag} — ${variantLabel} — ${handLabel} ${handEmoji}`;
 }
 
-function describeVariant(v: ExerciseParams['variant'], scale: Scale): string {
+export function describeVariant(v: ExerciseParams['variant'], scale: Scale): string {
   switch (v.kind) {
     case 'plain':
       return 'scale ↕';

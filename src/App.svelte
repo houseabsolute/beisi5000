@@ -424,63 +424,7 @@
 />
 
 <script module lang="ts">
-  import type { Variant } from './exercises/types';
-  import type { Scale } from './theory/scales';
-
-  const INTERVAL_NAMES: Record<number, string> = {
-    1: '2nds',
-    2: '3rds',
-    3: '4ths',
-    4: '5ths',
-    5: '6ths',
-    6: '7ths',
-    7: 'octaves',
-  };
-
-  function describeVariant(v: Variant, scale: Scale): string {
-    switch (v.kind) {
-      case 'plain':
-        return 'scale ↕';
-      case 'multiOctaveA':
-        return `multi-octave A (${v.octaves} oct)`;
-      case 'multiOctaveB':
-        return `multi-octave B (${v.octaves} oct)`;
-      case 'consecutive':
-        return (
-          Array.from({ length: v.groupSize }, (_, i) => i + 1).join('-') + ' ↕'
-        );
-      case 'mirror': {
-        const up = Array.from({ length: v.peakSize }, (_, i) => i + 1);
-        const down = up.slice(0, -1).reverse();
-        return [...up, ...down].join('-') + ' ↕';
-      }
-      case 'intervalWalk': {
-        if (scale.intervals.length === 7) {
-          const arrow = v.intervalDir === 'up' ? '↑' : '↓';
-          const name = INTERVAL_NAMES[v.interval] ?? `${v.interval + 1}ths`;
-          return `Walking ${name} ${arrow}`;
-        }
-        const sign = v.intervalDir === 'up' ? '+' : '-';
-        return `Scale walk ${sign}${v.interval}`;
-      }
-      case 'arpeggioCycle': {
-        const sizeLabels: Record<3 | 4 | 5 | 6 | 7, string> = {
-          3: 'Triad',
-          4: '7th',
-          5: '9th',
-          6: '11th',
-          7: '13th',
-        };
-        const dirSymbols: Record<'allUp' | 'upDown' | 'downUp' | 'zigzag', string> = {
-          allUp: '↑↑',
-          upDown: '↑↓',
-          downUp: '↓↑',
-          zigzag: '↕',
-        };
-        return `${sizeLabels[v.size]} cycle ${dirSymbols[v.direction]}`;
-      }
-    }
-  }
+  import { describeVariant } from './exercises/scale-generator';
 </script>
 
 <style>
