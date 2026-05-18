@@ -117,23 +117,14 @@ function computePerBarClefs(
   }
 
   // Roll up to per-bar clef. A bar's base clef is the clef in force
-  // at its first beat. AlphaTex emits `\clef` only at bar boundaries,
-  // so beat-level decisions snap to the bar that contains them.
+  // at its first beat. AlphaTab clefs are bar-level only (no mid-bar
+  // switches), so a high-note run that starts partway through a bar
+  // moves the clef change to the start of that bar.
   const totalBars = Math.ceil(totalBeats / beatsPerMeasure);
   const barClefs: ('bass' | 'treble')[] = [];
   for (let m = 0; m < totalBars; m++) {
     const firstBeat = m * beatsPerMeasure;
     barClefs.push(perBeat[firstBeat] ?? 'bass');
-  }
-  // Shift the bass→treble onset one bar earlier so the treble clef is
-  // already in place when the high run begins (rather than appearing
-  // simultaneously with the first high beat). The reverse switch
-  // (treble→bass) keeps its original position — letting the low
-  // section start cleanly under the new clef.
-  for (let m = 0; m < barClefs.length - 1; m++) {
-    if (barClefs[m] === 'bass' && barClefs[m + 1] === 'treble') {
-      barClefs[m] = 'treble';
-    }
   }
   return barClefs;
 }

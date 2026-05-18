@@ -177,11 +177,12 @@ describe('emitAlphaTex — autoClef', () => {
     expect(bodyClefSwitches).toBe(0);
   });
 
-  test('F Major Walking 5ths ↓ switches to treble at the high section', () => {
+  test('F Major Walking 5ths ↓ switches to treble at the high-note bar (not earlier)', () => {
     // The desc half of F Major walking 5ths down (rooted at F2 = MIDI 41)
-    // reaches C4 (60), B♭3 (58), and A3 (57) on consecutive beats.
-    // With autoClef on, those 3 beats should trigger a switch to treble.
-    // Spans beats 8, 9, 10 (each beat = 2 eighth notes).
+    // reaches C4 (60), B♭3 (58), and A3 (57) on consecutive beats 8/9/10.
+    // With autoClef on, those 3 beats trigger a switch — and the switch
+    // should land at bar 2 (beats 8-11, where the run starts), NOT one
+    // bar earlier. The low opening bars must remain bass.
     const seq = makeSeq([
       // Asc half (14 low notes — beats 0-6)
       41, 34, 43, 36, 45, 38, 46, 40, 48, 41, 50, 43, 52, 45,
@@ -193,8 +194,16 @@ describe('emitAlphaTex — autoClef', () => {
       48, 55, 46, 53, 45, 52, 43, 50, 41, 48, 41,
     ]);
     const tex = emitAlphaTex(seq, TUNINGS.fourStringEADG, { autoClef: true });
-    expect(tex).toContain('\\clef G2');
-    expect(tex).toContain('\\clef F4');
+    // Body is everything after the `.` separator. Bars are split by `|`.
+    const body = tex.split('\n.\n')[1] ?? '';
+    const bars = body.split('|').map((s) => s.trim());
+    // Bar 0 and bar 1 are the asc/boundary bars (all low) — no clef switch.
+    expect(bars[0]).not.toContain('\\clef');
+    expect(bars[1]).not.toContain('\\clef');
+    // Bar 2 contains beats 8-11 with C4, B♭3, A3 — should switch to treble.
+    expect(bars[2]).toContain('\\clef G2');
+    // The remaining low bars switch back to bass.
+    expect(body).toContain('\\clef F4');
   });
 
   test('low-only sequence stays in bass clef (no body \\clef)', () => {
