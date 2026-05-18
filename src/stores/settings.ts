@@ -16,6 +16,22 @@ export interface VariantToggles {
   intervalWalks: boolean; // walking 2nds..octaves, both interval directions
 }
 
+export interface ArpeggioToggles {
+  sizes: {
+    triad: boolean;        // 3 notes
+    seventh: boolean;      // 4 notes
+    ninth: boolean;        // 5 notes
+    eleventh: boolean;     // 6 notes
+    thirteenth: boolean;   // 7 notes
+  };
+  directions: {
+    allUp: boolean;
+    upDown: boolean;
+    downUp: boolean;
+    zigzag: boolean;
+  };
+}
+
 export interface MetronomeSettings {
   tempoMin: number;
   tempoMax: number;
@@ -39,6 +55,7 @@ export interface Settings {
   enabledKeys: string[];
   enabledHandPositions: HandPosition[];
   enabledVariants: VariantToggles;
+  enabledArpeggios: ArpeggioToggles;
   includeOpenStringVariants: boolean;
   /** Independent toggles for each of the three display views. */
   displayToggles: {
@@ -65,7 +82,7 @@ export interface Settings {
   recentExclusionCount: number;
 }
 
-const STORAGE_KEY = 'bass-practice:settings:v4';
+const STORAGE_KEY = 'bass-practice:settings:v5';
 
 export function defaultSettings(): Settings {
   const enabledScales = Object.keys(SCALES).reduce(
@@ -92,6 +109,21 @@ export function defaultSettings(): Settings {
       mirror_3: true,
       mirror_4: false,
       intervalWalks: true,
+    },
+    enabledArpeggios: {
+      sizes: {
+        triad: true,
+        seventh: true,
+        ninth: true,
+        eleventh: true,
+        thirteenth: true,
+      },
+      directions: {
+        allUp: true,
+        upDown: true,
+        downUp: true,
+        zigzag: true,
+      },
     },
     includeOpenStringVariants: true,
     displayToggles: {
@@ -128,6 +160,16 @@ function loadSettings(): Settings {
       enabledVariants: {
         ...defaults.enabledVariants,
         ...parsed.enabledVariants,
+      },
+      enabledArpeggios: {
+        sizes: {
+          ...defaults.enabledArpeggios.sizes,
+          ...parsed.enabledArpeggios?.sizes,
+        },
+        directions: {
+          ...defaults.enabledArpeggios.directions,
+          ...parsed.enabledArpeggios?.directions,
+        },
       },
       displayToggles: {
         ...defaults.displayToggles,
