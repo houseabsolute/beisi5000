@@ -159,6 +159,19 @@ export function lowestDegreeOffsetSemitones(
     const idx = ((degree % len) + len) % len;
     return octaveOffset + scale.intervals[idx];
   }
+  if (
+    variant.kind === 'arpeggioCycle' &&
+    (variant.direction === 'downUp' || variant.direction === 'upDown')
+  ) {
+    // downUp asc-half and upDown desc-half both play arpDown rooted at
+    // scale-degree 0, dropping (size-1) thirds = 2*(size-1) scale degrees
+    // below the root. The helper returns the resulting semitone delta.
+    const len = scale.intervals.length;
+    const degree = -(2 * (variant.size - 1));
+    const octaveOffset = Math.floor(degree / len) * 12;
+    const idx = ((degree % len) + len) % len;
+    return octaveOffset + scale.intervals[idx];
+  }
   return 0;
 }
 
@@ -189,21 +202,9 @@ export function startConstraintsForVariant(
   tuning: Tuning,
 ): { minMidi?: number; minStringIndex: number; maxStringIndex?: number } {
   if (variant.kind === 'arpeggioCycle') {
-    // downUp and upDown both play arpDown rooted at scale-degree 0 during
-    // their ascending half, dropping -(2*(size-1)) degrees below the root.
-    // Ensure the starting root is high enough that those notes are still
-    // reachable on the instrument.
-    const goesBelow =
-      variant.direction === 'downUp' || variant.direction === 'upDown';
-    let minMidi: number | undefined;
-    if (goesBelow) {
-      // lowestOffset is negative: how many semitones below root the arp goes.
-      const lowestOffset = scaleDegreeMidi(scale, 0, -(2 * (variant.size - 1)));
-      if (lowestOffset < 0) {
-        // Root must be at least this high so the lowest note is still on the neck.
-        minMidi = tuning.openMidi[0] - lowestOffset;
-      }
-    }
+    const lowestOffset = lowestDegreeOffsetSemitones(scale, variant);
+    const minMidi =
+      lowestOffset < 0 ? tuning.openMidi[0] - lowestOffset : undefined;
     return {
       minStringIndex: 0,
       maxStringIndex: tuning.stringCount === 4 ? 1 : 2,
