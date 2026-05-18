@@ -12,6 +12,7 @@ import { SCALES } from '../theory/scales';
 import { TUNINGS } from '../theory/tunings';
 import { pitchClass, midiOf, type PitchClass } from '../theory/notes';
 import { multiOctaveAMidi } from './multi-octave';
+import { KEYS_BY_ID, keySignatureFor, keySignatureLabelFor, spellingMap } from '../theory/keys';
 
 describe('ascendingScaleMidi', () => {
   test('C major from C2 (MIDI 36) yields 8 ascending notes', () => {
@@ -655,5 +656,75 @@ describe('startConstraintsForVariant — arpeggio', () => {
       TUNINGS.fourStringEADG,
     );
     expect(c.maxStringIndex).toBeUndefined();
+  });
+});
+
+describe('generateExercise — arpeggioCycle', () => {
+  function makeParams(
+    scaleId: 'major' | 'naturalMinor' | 'dorian',
+    keyId: string,
+    size: 3 | 4 | 5 | 6 | 7,
+    direction: 'allUp' | 'upDown' | 'downUp' | 'zigzag',
+    tuningId: 'fourStringEADG' | 'fiveStringBEADG' = 'fourStringEADG',
+  ) {
+    const key = KEYS_BY_ID[keyId];
+    const scale = SCALES[scaleId];
+    const tuning = TUNINGS[tuningId];
+    return {
+      scale,
+      rootPc: key.pc,
+      rootName: key.name,
+      variant: { kind: 'arpeggioCycle' as const, size, direction },
+      scaleDirection: 'updown' as const,
+      handPosition: 'front' as const,
+      tuning,
+      keySignature: keySignatureFor(key, scale),
+      keySignatureLabel: keySignatureLabelFor(key, scale),
+      spelling: spellingMap(key, scale),
+    };
+  }
+
+  test('C major triad allUp on 4-string starts on string 0 or 1', () => {
+    const ex = generateExercise(makeParams('major', 'C', 3, 'allUp'));
+    expect(ex.sequence[0].string).toBeLessThanOrEqual(1);
+  });
+
+  test('C major triad allUp on 5-string starts on string 0, 1, or 2', () => {
+    const ex = generateExercise(makeParams('major', 'C', 3, 'allUp', 'fiveStringBEADG'));
+    expect(ex.sequence[0].string).toBeLessThanOrEqual(2);
+  });
+
+  test('final note pins to start position', () => {
+    const ex = generateExercise(makeParams('major', 'G', 3, 'upDown'));
+    const start = ex.sequence[0];
+    const last = ex.sequence[ex.sequence.length - 1];
+    expect(last.string).toBe(start.string);
+    expect(last.fret).toBe(start.fret);
+  });
+
+  test('no negative frets across directions that fit on C major / 4-string', () => {
+    // allUp and zigzag stay within one octave above root — safe for all sizes.
+    // upDown/downUp descend below root, pushing minMidi up; for sizes > 3 on
+    // C major the apex then exceeds fret 24 on a 4-string, so the picker
+    // would filter those combinations out — we only test the valid subset.
+    const universalDirs = ['allUp', 'zigzag'] as const;
+    const allDirs = ['allUp', 'upDown', 'downUp', 'zigzag'] as const;
+    const sizes = [3, 4, 5] as const;
+    for (const sz of sizes) {
+      const dirs = sz === 3 ? allDirs : universalDirs;
+      for (const d of dirs) {
+        const ex = generateExercise(makeParams('major', 'C', sz, d));
+        for (const n of ex.sequence) {
+          expect(n.fret).toBeGreaterThanOrEqual(0);
+        }
+      }
+    }
+  });
+
+  test('every note uses eighth-note duration', () => {
+    const ex = generateExercise(makeParams('major', 'C', 3, 'allUp'));
+    for (const n of ex.sequence) {
+      expect(n.durationDenominator).toBe(8);
+    }
   });
 });

@@ -15,6 +15,7 @@ import {
 import { emitAlphaTex } from '../notation/alphatex-emitter';
 import { multiOctaveAMidi, multiOctaveBMidi } from './multi-octave';
 import {
+  arpeggioCycleMidi,
   intervalWalkAscMidi,
   scaleDegreeMidi,
   variantSequenceMidi,
@@ -188,9 +189,25 @@ export function startConstraintsForVariant(
   tuning: Tuning,
 ): { minMidi?: number; minStringIndex: number; maxStringIndex?: number } {
   if (variant.kind === 'arpeggioCycle') {
+    // downUp and upDown both play arpDown rooted at scale-degree 0 during
+    // their ascending half, dropping -(2*(size-1)) degrees below the root.
+    // Ensure the starting root is high enough that those notes are still
+    // reachable on the instrument.
+    const goesBelow =
+      variant.direction === 'downUp' || variant.direction === 'upDown';
+    let minMidi: number | undefined;
+    if (goesBelow) {
+      // lowestOffset is negative: how many semitones below root the arp goes.
+      const lowestOffset = scaleDegreeMidi(scale, 0, -(2 * (variant.size - 1)));
+      if (lowestOffset < 0) {
+        // Root must be at least this high so the lowest note is still on the neck.
+        minMidi = tuning.openMidi[0] - lowestOffset;
+      }
+    }
     return {
       minStringIndex: 0,
       maxStringIndex: tuning.stringCount === 4 ? 1 : 2,
+      minMidi,
     };
   }
   if (variant.kind !== 'intervalWalk') return { minStringIndex: 0 };
@@ -1380,6 +1397,16 @@ export function generateExercise(params: ExerciseParams): Exercise {
     sequence = layOnFretboard(midi, tuning, lowRootPos, handPosition, {
       applyPinLookahead: true,
       avoidOpenStrings: variant.kind === 'intervalWalk',
+    });
+  } else if (variant.kind === 'arpeggioCycle') {
+    // Arpeggio cycles use the same multi-octave layout pipeline as
+    // walking variants — apex drifts to high frets, pin lookahead pulls
+    // the resolution back to the start position. Open strings are
+    // avoided because they sound jumpy in the middle of an arp.
+    const midi = arpeggioCycleMidi(scale, lowRootMidi, variant.size, variant.direction);
+    sequence = layOnFretboard(midi, tuning, lowRootPos, handPosition, {
+      applyPinLookahead: true,
+      avoidOpenStrings: true,
     });
   } else {
     throw new Error(
