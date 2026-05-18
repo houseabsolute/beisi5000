@@ -157,3 +157,51 @@ describe('emitAlphaTex', () => {
     expect(restCount).toBe(0);
   });
 });
+
+describe('emitAlphaTex — autoClef', () => {
+  function makeSeq(midis: number[]): NoteSequence {
+    return midis.map((midi) => ({
+      string: 0,
+      fret: 0,
+      midi,
+      durationDenominator: 8,
+    }));
+  }
+
+  test('autoClef off → no \\clef switches in body', () => {
+    // A sequence with very high notes that WOULD trigger a switch.
+    const seq = makeSeq([60, 62, 64, 65, 67, 69, 71, 72]);
+    const tex = emitAlphaTex(seq, TUNINGS.fourStringEADG, { autoClef: false });
+    // Header has the initial \clef F4, but the body should have no further \clef tokens.
+    const bodyClefSwitches = (tex.split('\n.\n')[1]?.match(/\\clef/g) || []).length;
+    expect(bodyClefSwitches).toBe(0);
+  });
+
+  test('F Major Walking 5ths ↓ switches to treble at the high section', () => {
+    // The desc half of F Major walking 5ths down (rooted at F2 = MIDI 41)
+    // reaches C4 (60), B♭3 (58), and A3 (57) on consecutive beats.
+    // With autoClef on, those 3 beats should trigger a switch to treble.
+    // Spans beats 8, 9, 10 (each beat = 2 eighth notes).
+    const seq = makeSeq([
+      // Asc half (14 low notes — beats 0-6)
+      41, 34, 43, 36, 45, 38, 46, 40, 48, 41, 50, 43, 52, 45,
+      // Boundary pair (2 notes — beat 7)
+      53, 46,
+      // Desc half — first 3 pairs reach C4, B♭3, A3 (beats 8, 9, 10 = high)
+      53, 60, 52, 58, 50, 57,
+      // Remaining desc + final (low — beats 11+)
+      48, 55, 46, 53, 45, 52, 43, 50, 41, 48, 41,
+    ]);
+    const tex = emitAlphaTex(seq, TUNINGS.fourStringEADG, { autoClef: true });
+    expect(tex).toContain('\\clef G2');
+    expect(tex).toContain('\\clef F4');
+  });
+
+  test('low-only sequence stays in bass clef (no body \\clef)', () => {
+    // All notes below A3.
+    const seq = makeSeq([36, 38, 40, 41, 43, 45, 47, 48, 50, 52, 53, 50, 48, 45, 41]);
+    const tex = emitAlphaTex(seq, TUNINGS.fourStringEADG, { autoClef: true });
+    const bodyClefSwitches = (tex.split('\n.\n')[1]?.match(/\\clef/g) || []).length;
+    expect(bodyClefSwitches).toBe(0);
+  });
+});

@@ -41,10 +41,10 @@ export interface EmitOptions {
   showFingerNumbers?: boolean;
   /**
    * Per-measure clef auto-switching. When true, the staff switches to
-   * treble clef once a run of 3+ consecutive beats sits above A3
-   * (MIDI 57 — top line of bass clef), and switches back to bass on
-   * the equivalent run of low beats. When false (default), the staff
-   * stays in bass clef throughout.
+   * treble clef once a run of 3+ consecutive beats includes any note at
+   * or above A3 (MIDI 57 — top line of bass clef), and switches back
+   * to bass on the equivalent run of low beats. When false (default),
+   * the staff stays in bass clef throughout.
    */
   autoClef?: boolean;
 }
@@ -76,10 +76,10 @@ function computePerBarClefs(
   beatsPerMeasure: number,
 ): ('bass' | 'treble')[] {
   // Classify each beat. A beat counts as "H" (high) if it contains
-  // any note above A3 — walking 6ths/7ths pair a high note with a
-  // low one each beat, but the high note still needs ledger lines, so
-  // the beat as a whole benefits from treble clef. "L" means every
-  // note on the beat sits within the bass staff.
+  // any note at or above A3 (MIDI 57 = the bass clef's top line).
+  // The top line itself isn't a ledger line, but exercises that tap
+  // the top line on the way to notes above it read more cleanly when
+  // the whole high run reads under one clef.
   const totalBeats = Math.ceil(sequence.length / notesPerBeat);
   const beatClass: ('H' | 'L')[] = [];
   for (let b = 0; b < totalBeats; b++) {
@@ -88,7 +88,7 @@ function computePerBarClefs(
       beatClass.push('L');
       continue;
     }
-    const hasHigh = notes.some((n) => n.midi > 57);
+    const hasHigh = notes.some((n) => n.midi >= 57);
     beatClass.push(hasHigh ? 'H' : 'L');
   }
 
