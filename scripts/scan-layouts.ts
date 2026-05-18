@@ -5,6 +5,7 @@
 // Usage:
 //   npx tsx scripts/scan-layouts.ts                  # all exercises
 //   npx tsx scripts/scan-layouts.ts walking          # only interval-walk variants
+//   npx tsx scripts/scan-layouts.ts arpeggio         # only arpeggio cycle variants
 //
 // Flags any of:
 //   - Negative frets (should never happen — picker should reject these combos).
@@ -18,6 +19,7 @@ import { defaultSettings } from '../src/stores/settings.ts';
 import type { Variant } from '../src/exercises/types.ts';
 
 const onlyWalking = process.argv.includes('walking');
+const onlyArpeggio = process.argv.includes('arpeggio');
 
 const s = defaultSettings();
 const universe = generateUniverse(s);
@@ -28,6 +30,7 @@ const samples: { tag: string; msg: string }[] = [];
 
 for (const params of universe) {
   if (onlyWalking && params.variant.kind !== 'intervalWalk') continue;
+  if (onlyArpeggio && params.variant.kind !== 'arpeggioCycle') continue;
   totalChecked++;
   let ex;
   try {
@@ -80,7 +83,7 @@ for (const params of universe) {
 }
 
 console.log(
-  `${totalIssues} issues out of ${totalChecked} exercises${onlyWalking ? ' (walking only)' : ''}`,
+  `${totalIssues} issues out of ${totalChecked} exercises${onlyWalking ? ' (walking only)' : ''}${onlyArpeggio ? ' (arpeggio only)' : ''}`,
 );
 const SAMPLE = 20;
 for (const issue of samples.slice(0, SAMPLE)) {
@@ -105,7 +108,7 @@ function variantTag(v: Variant): string {
     case 'multiOctaveB':
       return `mo-B ${v.octaves}oct`;
     case 'arpeggioCycle':
-      return 'arp placeholder';
+      return `arp ${v.size}-${v.direction}`;
   }
 }
 

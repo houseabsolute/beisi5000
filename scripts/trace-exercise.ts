@@ -17,6 +17,7 @@
 //   moA<N> | moB<N>             → multi-octave A or B, N octaves
 //   cons<N>                     → consecutive groups of N (1-2-3 etc)
 //   mirror<N>                   → mirror groups, peak size N
+//   arp<size>-<direction>       → arpeggio cycle, e.g. arp3-allUp, arp7-zigzag
 
 import { generateExercise } from '../src/exercises/scale-generator.ts';
 import { SCALES, type ScaleId } from '../src/theory/scales.ts';
@@ -88,5 +89,17 @@ function parseVariant(spec: string): Variant {
   if (cons) return { kind: 'consecutive', groupSize: Number(cons[1]) };
   const mirror = spec.match(/^mirror(\d+)$/);
   if (mirror) return { kind: 'mirror', peakSize: Number(mirror[1]) };
+  const arp = spec.match(/^arp(\d+)-(allUp|upDown|downUp|zigzag)$/);
+  if (arp) {
+    const size = Number(arp[1]);
+    if (![3, 4, 5, 6, 7].includes(size)) {
+      throw new Error(`Invalid arpeggio size: ${size} (must be 3-7)`);
+    }
+    return {
+      kind: 'arpeggioCycle',
+      size: size as 3 | 4 | 5 | 6 | 7,
+      direction: arp[2] as 'allUp' | 'upDown' | 'downUp' | 'zigzag',
+    };
+  }
   throw new Error(`Unknown variant spec: ${spec}`);
 }
