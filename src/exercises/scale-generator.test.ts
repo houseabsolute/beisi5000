@@ -7,6 +7,7 @@ import {
   generateExercise,
   arpeggioCycleApex,
   startConstraintsForVariant,
+  formatDisplayName,
 } from './scale-generator';
 import { SCALES } from '../theory/scales';
 import { TUNINGS } from '../theory/tunings';
@@ -726,5 +727,57 @@ describe('generateExercise — arpeggioCycle', () => {
     for (const n of ex.sequence) {
       expect(n.durationDenominator).toBe(8);
     }
+  });
+});
+
+describe('formatDisplayName — arpeggios', () => {
+  function arpParams(
+    keyId: string,
+    scaleId: 'major' | 'naturalMinor' | 'dorian' | 'phrygianDominant',
+    size: 3 | 4 | 5 | 6 | 7,
+    direction: 'allUp' | 'upDown' | 'downUp' | 'zigzag',
+  ) {
+    const key = KEYS_BY_ID[keyId];
+    const scale = SCALES[scaleId];
+    return {
+      scale,
+      rootPc: key.pc,
+      rootName: key.name,
+      variant: { kind: 'arpeggioCycle' as const, size, direction },
+      scaleDirection: 'updown' as const,
+      handPosition: 'front' as const,
+      tuning: TUNINGS.fourStringEADG,
+    };
+  }
+
+  test('C major triad allUp', () => {
+    expect(formatDisplayName(arpParams('C', 'major', 3, 'allUp'))).toBe(
+      'C Major — Triad cycle ↑↑',
+    );
+  });
+
+  test('E♭ dorian 9th zigzag', () => {
+    expect(formatDisplayName(arpParams('Eb', 'dorian', 5, 'zigzag'))).toBe(
+      'E♭ Dorian — 9th cycle ↕',
+    );
+  });
+
+  test('B♭ phrygian-dominant 7th upDown', () => {
+    expect(formatDisplayName(arpParams('Bb', 'phrygianDominant', 4, 'upDown'))).toBe(
+      'B♭ Phrygian Dominant — 7th cycle ↑↓',
+    );
+  });
+
+  test('C natural-minor 11th downUp', () => {
+    expect(formatDisplayName(arpParams('C', 'naturalMinor', 6, 'downUp'))).toBe(
+      'C Natural Minor — 11th cycle ↓↑',
+    );
+  });
+
+  test('no hand chip suffix (consistent with walking 7ths/octaves)', () => {
+    const name = formatDisplayName(arpParams('C', 'major', 3, 'allUp'));
+    expect(name).not.toContain('Front');
+    expect(name).not.toContain('Mid');
+    expect(name).not.toContain('Back');
   });
 });

@@ -1474,8 +1474,22 @@ function describeVariant(v: ExerciseParams['variant'], scale: Scale): string {
       const sign = v.intervalDir === 'up' ? '+' : '-';
       return `Scale walk ${sign}${v.interval}`;
     }
-    case 'arpeggioCycle':
-      return 'Arpeggio (placeholder)';
+    case 'arpeggioCycle': {
+      const sizeLabels: Record<3 | 4 | 5 | 6 | 7, string> = {
+        3: 'Triad',
+        4: '7th',
+        5: '9th',
+        6: '11th',
+        7: '13th',
+      };
+      const dirSymbols: Record<'allUp' | 'upDown' | 'downUp' | 'zigzag', string> = {
+        allUp: '↑↑',
+        upDown: '↑↓',
+        downUp: '↓↑',
+        zigzag: '↕',
+      };
+      return `${sizeLabels[v.size]} cycle ${dirSymbols[v.direction]}`;
+    }
   }
 }
 
