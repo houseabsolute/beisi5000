@@ -3,6 +3,7 @@ import { paramsKey, generateUniverse, pickWeightedRandom } from './picker';
 import { walkingPairMaxSemitones } from './scale-generator';
 import type { Settings } from '../stores/settings';
 import { defaultSettings } from '../stores/settings';
+import type { ArpeggioToggles } from '../stores/settings';
 
 const baseSettings: Settings = defaultSettings();
 
@@ -332,5 +333,133 @@ describe('pickWeightedRandom', () => {
 
   test('returns null for empty universe', () => {
     expect(pickWeightedRandom([], new Set())).toBeNull();
+  });
+});
+
+function arpsOnly(overrides: Partial<ArpeggioToggles> = {}): Settings {
+  const empty = (val: boolean) => ({
+    plain: val,
+    multiOctaveA_2: val,
+    multiOctaveA_3: val,
+    multiOctaveB_2: val,
+    consecutive_3: val,
+    consecutive_4: val,
+    mirror_3: val,
+    mirror_4: val,
+    intervalWalks: val,
+  });
+  return {
+    ...baseSettings,
+    enabledVariants: empty(false),
+    enabledArpeggios: {
+      sizes: {
+        triad: true,
+        seventh: false,
+        ninth: false,
+        eleventh: false,
+        thirteenth: false,
+      },
+      directions: {
+        allUp: true,
+        upDown: false,
+        downUp: false,
+        zigzag: false,
+      },
+      ...overrides,
+    },
+  };
+}
+
+describe('generateUniverse — arpeggio universe', () => {
+  test('arpeggios excluded for pentatonic scales', () => {
+    const settings: Settings = {
+      ...arpsOnly(),
+      enabledScales: { majorPentatonic: true } as Settings['enabledScales'],
+    };
+    const universe = generateUniverse(settings);
+    expect(universe).toHaveLength(0);
+  });
+
+  test('arpeggios excluded for chromatic scale', () => {
+    const settings: Settings = {
+      ...arpsOnly(),
+      enabledScales: { chromatic: true } as Settings['enabledScales'],
+    };
+    const universe = generateUniverse(settings);
+    expect(universe).toHaveLength(0);
+  });
+
+  test('arpeggios included for Major scale', () => {
+    const settings: Settings = {
+      ...arpsOnly(),
+      enabledScales: { major: true } as Settings['enabledScales'],
+      enabledKeys: ['C'],
+    };
+    const universe = generateUniverse(settings);
+    expect(universe.length).toBeGreaterThan(0);
+    for (const p of universe) {
+      expect(p.variant.kind).toBe('arpeggioCycle');
+    }
+  });
+
+  test('arpeggios included for Hungarian Minor (7 intervals, despite pentatonic category)', () => {
+    const settings: Settings = {
+      ...arpsOnly(),
+      enabledScales: { hungarian: true } as Settings['enabledScales'],
+      enabledKeys: ['C'],
+    };
+    const universe = generateUniverse(settings);
+    expect(universe.length).toBeGreaterThan(0);
+  });
+
+  test('one canonical entry per (scale, key, size, direction) — no hand-position multiplication', () => {
+    const settings: Settings = {
+      ...arpsOnly(),
+      enabledScales: { major: true } as Settings['enabledScales'],
+      enabledKeys: ['C'],
+      enabledHandPositions: ['front', 'mid', 'back'],
+    };
+    const universe = generateUniverse(settings);
+    expect(universe).toHaveLength(1); // triad × allUp × C major × 1 hp
+  });
+
+  test('disabling all sizes removes arpeggios entirely', () => {
+    const settings: Settings = arpsOnly({
+      sizes: {
+        triad: false,
+        seventh: false,
+        ninth: false,
+        eleventh: false,
+        thirteenth: false,
+      },
+    });
+    expect(generateUniverse(settings)).toHaveLength(0);
+  });
+
+  test('disabling all directions removes arpeggios entirely', () => {
+    const settings: Settings = arpsOnly({
+      directions: {
+        allUp: false,
+        upDown: false,
+        downUp: false,
+        zigzag: false,
+      },
+    });
+    expect(generateUniverse(settings)).toHaveLength(0);
+  });
+
+  test('no open-string arpeggio variants', () => {
+    // includeOpenStringVariants ON shouldn't produce open-string arpeggio entries.
+    const settings: Settings = {
+      ...arpsOnly(),
+      enabledScales: { major: true } as Settings['enabledScales'],
+      enabledKeys: ['C', 'E'],  // E has an open-string root on the low E string
+      includeOpenStringVariants: true,
+    };
+    const universe = generateUniverse(settings);
+    expect(universe.length).toBeGreaterThan(0);
+    for (const p of universe) {
+      expect(p.useOpenStrings).toBe(false);
+    }
   });
 });

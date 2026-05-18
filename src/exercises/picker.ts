@@ -20,6 +20,7 @@ import {
   startConstraintsForVariant,
   isHandPositionMeaningful,
   canonicalHandPositionForVariant,
+  arpeggioCycleApex,
 } from './scale-generator';
 import type { Settings } from '../stores/settings';
 
@@ -180,6 +181,8 @@ function highestMidi(
       const idx = ((lastDegree % len) + len) % len;
       return lowRootMidi + octaveOffset + scale.intervals[idx];
     }
+    case 'arpeggioCycle':
+      return arpeggioCycleApex(scale, lowRootMidi, variant.size);
     default:
       return lowRootMidi + 12;
   }
@@ -210,6 +213,25 @@ function variantsFromSettings(s: Settings, stringCount: number): Variant[] {
     for (let interval = 1; interval <= 7; interval++) {
       variants.push({ kind: 'intervalWalk', interval, intervalDir: 'up' });
       variants.push({ kind: 'intervalWalk', interval, intervalDir: 'down' });
+    }
+  }
+  const SIZE_KEYS = ['triad', 'seventh', 'ninth', 'eleventh', 'thirteenth'] as const;
+  const SIZE_VALUES: Array<3 | 4 | 5 | 6 | 7> = [3, 4, 5, 6, 7];
+  const DIRECTIONS: Array<'allUp' | 'upDown' | 'downUp' | 'zigzag'> = [
+    'allUp',
+    'upDown',
+    'downUp',
+    'zigzag',
+  ];
+  for (let i = 0; i < SIZE_KEYS.length; i++) {
+    if (!s.enabledArpeggios.sizes[SIZE_KEYS[i]]) continue;
+    for (const dir of DIRECTIONS) {
+      if (!s.enabledArpeggios.directions[dir]) continue;
+      variants.push({
+        kind: 'arpeggioCycle',
+        size: SIZE_VALUES[i],
+        direction: dir,
+      });
     }
   }
   return variants;
@@ -269,6 +291,9 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
           const maxInterval =
             scale.intervals.length === 5 ? 3 : scale.intervals.length;
           if (variant.interval > maxInterval) continue;
+        }
+        if (variant.kind === 'arpeggioCycle' && scale.intervals.length !== 7) {
+          continue;
         }
         if (!isHandPositionMeaningful(scale, variant)) {
           plan.push({ variant, hp: canonicalHandPositionForVariant(variant) });
@@ -337,6 +362,7 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
         }
         if (
           s.includeOpenStringVariants &&
+          variant.kind !== 'arpeggioCycle' &&
           hasOpenStringVariant(rootPc, hp, tuning) &&
           lowestOffset >= 0
         ) {
