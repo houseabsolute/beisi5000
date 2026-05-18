@@ -120,6 +120,9 @@ function computePerBarClefs(
   // at its first beat. AlphaTab clefs are bar-level only (no mid-bar
   // switches), so a high-note run that starts partway through a bar
   // moves the clef change to the start of that bar.
+  // Mid-bar clef changes are tracked upstream as an unplanned idea:
+  // https://github.com/CoderLine/alphaTab/issues/1991 — revisit if
+  // that ships.
   const totalBars = Math.ceil(totalBeats / beatsPerMeasure);
   const barClefs: ('bass' | 'treble')[] = [];
   for (let m = 0; m < totalBars; m++) {
