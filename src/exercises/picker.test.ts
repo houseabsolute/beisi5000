@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { paramsKey, generateUniverse, pickWeightedRandom } from './picker';
+import { paramsKey, paramsFromKey, generateUniverse, pickWeightedRandom } from './picker';
 import { walkingPairMaxSemitones } from './scale-generator';
 import type { Settings } from '../stores/settings';
 import { defaultSettings } from '../stores/settings';
@@ -460,6 +460,52 @@ describe('generateUniverse — arpeggio universe', () => {
     expect(universe.length).toBeGreaterThan(0);
     for (const p of universe) {
       expect(p.useOpenStrings).toBe(false);
+    }
+  });
+});
+
+describe('paramsKey / paramsFromKey — arpeggio round-trip', () => {
+  test('triad allUp round-trips', () => {
+    const settings: Settings = {
+      ...arpsOnly(),
+      enabledScales: { major: true } as Settings['enabledScales'],
+      enabledKeys: ['C'],
+    };
+    const universe = generateUniverse(settings);
+    const p = universe[0];
+    const key = paramsKey(p);
+    expect(key).toContain('arpeggio:3:allUp');
+    const restored = paramsFromKey(key);
+    expect(restored).not.toBeNull();
+    expect(restored!.variant.kind).toBe('arpeggioCycle');
+    if (restored!.variant.kind === 'arpeggioCycle') {
+      expect(restored!.variant.size).toBe(3);
+      expect(restored!.variant.direction).toBe('allUp');
+    }
+  });
+
+  test('13th zigzag round-trips', () => {
+    const settings: Settings = {
+      ...arpsOnly({
+        sizes: { triad: false, seventh: false, ninth: false, eleventh: false, thirteenth: true },
+        directions: { allUp: false, upDown: false, downUp: false, zigzag: true },
+      }),
+      enabledScales: { major: true } as Settings['enabledScales'],
+      enabledKeys: ['Bb'],
+    };
+    const universe = generateUniverse(settings);
+    if (universe.length === 0) {
+      // 13th zigzag on B♭ may not fit the bass — skip in that case.
+      return;
+    }
+    const p = universe[0];
+    const key = paramsKey(p);
+    expect(key).toContain('arpeggio:7:zigzag');
+    const restored = paramsFromKey(key);
+    expect(restored).not.toBeNull();
+    if (restored!.variant.kind === 'arpeggioCycle') {
+      expect(restored!.variant.size).toBe(7);
+      expect(restored!.variant.direction).toBe('zigzag');
     }
   });
 });

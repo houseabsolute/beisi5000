@@ -84,6 +84,27 @@ export function paramsFromKey(key: string): ExerciseParams | null {
       const interval = Number(rest.slice(1));
       if (!Number.isFinite(interval)) return null;
       variant = { kind: 'intervalWalk', interval, intervalDir };
+    } else if (kind === 'arpeggio') {
+      // rest format: "<size>:<direction>", e.g. "3:allUp"
+      const colon2 = rest.indexOf(':');
+      if (colon2 < 0) return null;
+      const sizeStr = rest.slice(0, colon2);
+      const dirStr = rest.slice(colon2 + 1);
+      const size = Number(sizeStr);
+      if (![3, 4, 5, 6, 7].includes(size)) return null;
+      if (
+        dirStr !== 'allUp' &&
+        dirStr !== 'upDown' &&
+        dirStr !== 'downUp' &&
+        dirStr !== 'zigzag'
+      ) {
+        return null;
+      }
+      variant = {
+        kind: 'arpeggioCycle',
+        size: size as 3 | 4 | 5 | 6 | 7,
+        direction: dirStr as 'allUp' | 'upDown' | 'downUp' | 'zigzag',
+      };
     } else {
       return null;
     }
@@ -138,9 +159,7 @@ export function paramsKey(p: ExerciseParams): string {
       variantKey = `walk:${p.variant.intervalDir === 'up' ? '+' : '-'}${p.variant.interval}`;
       break;
     case 'arpeggioCycle':
-      // Placeholder: every arpeggio hashes identically, breaking history dedup if >1 variant exists.
-      // Task 11 replaces this with `arpeggio:${variant.size}:${variant.direction}`.
-      variantKey = 'arpeggio:placeholder';
+      variantKey = `arpeggio:${p.variant.size}:${p.variant.direction}`;
       break;
   }
   return [
