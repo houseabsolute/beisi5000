@@ -3,7 +3,7 @@ import { paramsKey, paramsFromKey, generateUniverse, pickWeightedRandom } from '
 import { walkingPairMaxSemitones } from './scale-generator';
 import type { Settings } from '../stores/settings';
 import { defaultSettings } from '../stores/settings';
-import type { ArpeggioToggles } from '../stores/settings';
+import type { ArpeggioToggles, AgilityToggles } from '../stores/settings';
 
 const baseSettings: Settings = defaultSettings();
 
@@ -39,6 +39,7 @@ describe('generateUniverse', () => {
     const settings: Settings = {
       ...baseSettings,
       enabledScales: { major: true } as Settings['enabledScales'],
+      enabledAgility: { bigX: false, spider: false },
     };
     const universe = generateUniverse(settings);
     for (const p of universe) {
@@ -61,6 +62,7 @@ describe('generateUniverse', () => {
     const settings: Settings = {
       ...baseSettings,
       enabledKeys: ['Bb'],
+      enabledAgility: { bigX: false, spider: false },
     };
     const universe = generateUniverse(settings);
     expect(universe.length).toBeGreaterThan(0);
@@ -75,6 +77,7 @@ describe('generateUniverse', () => {
       ...baseSettings,
       enabledKeys: ['Bb'],
       enabledScales: { major: true } as Settings['enabledScales'],
+      enabledAgility: { bigX: false, spider: false },
     };
     const universe = generateUniverse(settings);
     for (const p of universe) {
@@ -87,6 +90,7 @@ describe('generateUniverse', () => {
       ...baseSettings,
       enabledKeys: ['Ds'],
       enabledScales: { major: true } as Settings['enabledScales'],
+      enabledAgility: { bigX: false, spider: false },
     };
     const universe = generateUniverse(settings);
     expect(universe).toHaveLength(0);
@@ -97,6 +101,7 @@ describe('generateUniverse', () => {
       ...baseSettings,
       enabledKeys: ['Ds'],
       enabledScales: { naturalMinor: true } as Settings['enabledScales'],
+      enabledAgility: { bigX: false, spider: false },
     };
     const universe = generateUniverse(settings);
     expect(universe.length).toBeGreaterThan(0);
@@ -367,6 +372,7 @@ function arpsOnly(overrides: Partial<ArpeggioToggles> = {}): Settings {
       },
       ...overrides,
     },
+    enabledAgility: { bigX: false, spider: false },
   };
 }
 
@@ -507,5 +513,120 @@ describe('paramsKey / paramsFromKey — arpeggio round-trip', () => {
       expect(restored!.variant.size).toBe(7);
       expect(restored!.variant.direction).toBe('zigzag');
     }
+  });
+});
+
+describe('generateUniverse — agility universe', () => {
+  function agilityOnly(toggles: { bigX?: boolean; spider?: boolean } = {}): Settings {
+    const empty = (val: boolean) => ({
+      plain: val,
+      multiOctaveA_2: val,
+      multiOctaveA_3: val,
+      multiOctaveB_2: val,
+      consecutive_3: val,
+      consecutive_4: val,
+      mirror_3: val,
+      mirror_4: val,
+      intervalWalks: val,
+    });
+    return {
+      ...baseSettings,
+      enabledVariants: empty(false),
+      enabledArpeggios: {
+        sizes: { triad: false, seventh: false, ninth: false, eleventh: false, thirteenth: false },
+        directions: { allUp: false, upDown: false, downUp: false, zigzag: false },
+      },
+      enabledAgility: {
+        bigX: toggles.bigX ?? true,
+        spider: toggles.spider ?? true,
+      },
+    };
+  }
+
+  test('Big X only, 4-string EADG: 4 entries (1 startString × 2 directions × 2 spellings)', () => {
+    const s: Settings = {
+      ...agilityOnly({ bigX: true, spider: false }),
+      tuningId: 'fourStringEADG',
+    };
+    const universe = generateUniverse(s);
+    expect(universe).toHaveLength(4);
+    for (const p of universe) {
+      expect(p.variant.kind).toBe('bigX');
+    }
+  });
+
+  test('Big X only, 5-string BEADG: 8 entries (2 × 2 × 2)', () => {
+    const s: Settings = {
+      ...agilityOnly({ bigX: true, spider: false }),
+      tuningId: 'fiveStringBEADG',
+    };
+    expect(generateUniverse(s)).toHaveLength(8);
+  });
+
+  test('Big X only, 6-string BEADGC: 12 entries (3 × 2 × 2)', () => {
+    const s: Settings = {
+      ...agilityOnly({ bigX: true, spider: false }),
+      tuningId: 'sixStringBEADGC',
+    };
+    expect(generateUniverse(s)).toHaveLength(12);
+  });
+
+  test('Spider only, 4-string EADG: 12 entries (3 pairs × 2 × 2)', () => {
+    const s: Settings = {
+      ...agilityOnly({ bigX: false, spider: true }),
+      tuningId: 'fourStringEADG',
+    };
+    expect(generateUniverse(s)).toHaveLength(12);
+  });
+
+  test('Spider only, 5-string BEADG: 16 entries (4 × 2 × 2)', () => {
+    const s: Settings = {
+      ...agilityOnly({ bigX: false, spider: true }),
+      tuningId: 'fiveStringBEADG',
+    };
+    expect(generateUniverse(s)).toHaveLength(16);
+  });
+
+  test('agility on with no enabled keys/scales/handPositions still emits entries', () => {
+    const s: Settings = {
+      ...agilityOnly({ bigX: true, spider: false }),
+      tuningId: 'fourStringEADG',
+      enabledScales: {} as Settings['enabledScales'],
+      enabledKeys: [],
+      enabledHandPositions: [],
+    };
+    expect(generateUniverse(s)).toHaveLength(4);
+  });
+
+  test('agility entries use chromatic scale + C root + front hand', () => {
+    const s: Settings = {
+      ...agilityOnly({ bigX: true, spider: false }),
+      tuningId: 'fourStringEADG',
+    };
+    const universe = generateUniverse(s);
+    for (const p of universe) {
+      expect(p.scale.name).toBe('Chromatic');
+      expect(p.rootPc).toBe(0);
+      expect(p.rootName).toBe('C');
+      expect(p.handPosition).toBe('front');
+      expect(p.useOpenStrings).toBe(false);
+    }
+  });
+
+  test('agility entries have a populated spelling map (5 entries)', () => {
+    const s: Settings = {
+      ...agilityOnly({ bigX: true, spider: false }),
+      tuningId: 'fourStringEADG',
+    };
+    const universe = generateUniverse(s);
+    for (const p of universe) {
+      expect(p.spelling).toBeDefined();
+      expect(p.spelling!.size).toBe(5);
+    }
+  });
+
+  test('disabling both agility toggles removes agility entries', () => {
+    const s: Settings = agilityOnly({ bigX: false, spider: false });
+    expect(generateUniverse(s)).toHaveLength(0);
   });
 });

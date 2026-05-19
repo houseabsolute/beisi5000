@@ -23,6 +23,7 @@ import {
   arpeggioCycleApex,
 } from './scale-generator';
 import type { Settings } from '../stores/settings';
+import { agilitySpellingMap } from './agility';
 
 const MAX_FRET = 24;
 
@@ -259,6 +260,27 @@ function variantsFromSettings(s: Settings, stringCount: number): Variant[] {
       });
     }
   }
+  const AGILITY_DIRECTIONS: Array<'forward' | 'reverse'> = ['forward', 'reverse'];
+  const AGILITY_SPELLINGS: Array<'sharp' | 'flat'> = ['sharp', 'flat'];
+  if (s.enabledAgility.bigX) {
+    // 4 adjacent strings × 2 directions × 2 spellings per valid startString.
+    for (let startString = 0; startString + 3 < stringCount; startString++) {
+      for (const direction of AGILITY_DIRECTIONS) {
+        for (const spelling of AGILITY_SPELLINGS) {
+          variants.push({ kind: 'bigX', startString, direction, spelling });
+        }
+      }
+    }
+  }
+  if (s.enabledAgility.spider) {
+    for (let lowerString = 0; lowerString < stringCount - 1; lowerString++) {
+      for (const direction of AGILITY_DIRECTIONS) {
+        for (const spelling of AGILITY_SPELLINGS) {
+          variants.push({ kind: 'spider', lowerString, direction, spelling });
+        }
+      }
+    }
+  }
   return variants;
 }
 
@@ -272,11 +294,38 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
   const variants = variantsFromSettings(s, tuning.stringCount);
   if (variants.length === 0) return [];
 
+  // Agility variants don't depend on key/scale/handPosition — short-circuit
+  // before the keys × scales × handPositions iteration.
+  const agilityVariants = variants.filter(
+    (v) => v.kind === 'bigX' || v.kind === 'spider',
+  );
+  const nonAgilityVariants = variants.filter(
+    (v) => v.kind !== 'bigX' && v.kind !== 'spider',
+  );
+
+  const result: ExerciseParams[] = [];
+
+  for (const variant of agilityVariants) {
+    if (variant.kind !== 'bigX' && variant.kind !== 'spider') continue;
+    result.push({
+      scale: SCALES.chromatic,
+      rootPc: 0,
+      rootName: 'C',
+      variant,
+      scaleDirection: 'updown',
+      handPosition: 'front',
+      tuning,
+      useOpenStrings: false,
+      keySignature: 0,
+      keySignatureLabel: 'C',
+      spelling: agilitySpellingMap(variant.spelling),
+    });
+  }
+
   const enabledScaleIds = (Object.keys(SCALES) as ScaleId[]).filter(
     (id) => s.enabledScales[id],
   );
 
-  const result: ExerciseParams[] = [];
   for (const scaleId of enabledScaleIds) {
     const scale = SCALES[scaleId];
     for (const keyId of s.enabledKeys) {
@@ -311,7 +360,7 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
       // hand positions the user has enabled. For every other variant,
       // iterate over the enabled hand positions normally.
       const plan: Array<{ variant: Variant; hp: HandPosition }> = [];
-      for (const variant of variants) {
+      for (const variant of nonAgilityVariants) {
         if (variant.kind === 'intervalWalk') {
           const maxInterval =
             scale.intervals.length === 5 ? 3 : scale.intervals.length;
