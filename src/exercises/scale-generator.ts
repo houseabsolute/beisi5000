@@ -1427,7 +1427,7 @@ export function generateExercise(params: ExerciseParams): Exercise {
 
 export function formatDisplayName(params: ExerciseParams): string {
   const root = params.rootName ?? pitchClassName(params.rootPc, 'sharp');
-  const variantLabel = describeVariant(params.variant, params.scale);
+  const variantLabel = describeVariant(params.variant, params.scale, params.tuning);
   const openTag = params.useOpenStrings ? ' (open)' : '';
   // Drop the hand-position suffix for walking exercises whose pair
   // span exceeds the hand window — the starting finger is determined
@@ -1441,7 +1441,7 @@ export function formatDisplayName(params: ExerciseParams): string {
   return `${root} ${params.scale.name}${openTag} — ${variantLabel} — ${handLabel} ${handEmoji}`;
 }
 
-export function describeVariant(v: ExerciseParams['variant'], scale: Scale): string {
+export function describeVariant(v: ExerciseParams['variant'], scale: Scale, tuning: Tuning): string {
   switch (v.kind) {
     case 'plain':
       return 'scale ↕';

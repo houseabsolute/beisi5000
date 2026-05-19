@@ -300,6 +300,7 @@
           >{describeVariant(
             currentExercise.params.variant,
             currentExercise.params.scale,
+            currentExercise.params.tuning,
           )}</span
         >
       </div>
