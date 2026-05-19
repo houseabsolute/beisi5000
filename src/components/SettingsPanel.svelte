@@ -101,6 +101,16 @@
     }));
   }
 
+  function toggleAgility(key: keyof typeof $settings.enabledAgility) {
+    settings.update((s) => ({
+      ...s,
+      enabledAgility: {
+        ...s.enabledAgility,
+        [key]: !s.enabledAgility[key],
+      },
+    }));
+  }
+
   function setMetro<K extends keyof typeof $settings.metronome>(
     k: K,
     v: (typeof $settings.metronome)[K],
@@ -331,6 +341,27 @@
           <span>↕ zigzag</span>
         </label>
       </div>
+    </section>
+
+    <section>
+      <h3>Hand-agility drills</h3>
+      <p class="hint">Chromatic finger-coordination patterns up the neck. No key — pure technique.</p>
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          checked={$settings.enabledAgility.bigX}
+          onchange={() => toggleAgility('bigX')}
+        />
+        Big X — diagonals across 4 adjacent strings
+      </label>
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          checked={$settings.enabledAgility.spider}
+          onchange={() => toggleAgility('spider')}
+        />
+        Spider — two-string crawl
+      </label>
     </section>
 
     <section>
