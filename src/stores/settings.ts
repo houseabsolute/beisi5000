@@ -32,6 +32,11 @@ export interface ArpeggioToggles {
   };
 }
 
+export interface AgilityToggles {
+  bigX: boolean;
+  spider: boolean;
+}
+
 export interface MetronomeSettings {
   tempoMin: number;
   tempoMax: number;
@@ -56,6 +61,7 @@ export interface Settings {
   enabledHandPositions: HandPosition[];
   enabledVariants: VariantToggles;
   enabledArpeggios: ArpeggioToggles;
+  enabledAgility: AgilityToggles;
   includeOpenStringVariants: boolean;
   /** Independent toggles for each of the three display views. */
   displayToggles: {
@@ -82,7 +88,7 @@ export interface Settings {
   recentExclusionCount: number;
 }
 
-const STORAGE_KEY = 'bass-practice:settings:v5';
+const STORAGE_KEY = 'bass-practice:settings:v6';
 
 export function defaultSettings(): Settings {
   const enabledScales = Object.keys(SCALES).reduce(
@@ -124,6 +130,10 @@ export function defaultSettings(): Settings {
         downUp: true,
         zigzag: true,
       },
+    },
+    enabledAgility: {
+      bigX: true,
+      spider: true,
     },
     includeOpenStringVariants: true,
     displayToggles: {
@@ -170,6 +180,10 @@ function loadSettings(): Settings {
           ...defaults.enabledArpeggios.directions,
           ...parsed.enabledArpeggios?.directions,
         },
+      },
+      enabledAgility: {
+        ...defaults.enabledAgility,
+        ...parsed.enabledAgility,
       },
       displayToggles: {
         ...defaults.displayToggles,
