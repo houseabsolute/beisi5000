@@ -10,7 +10,7 @@ import {
   formatDisplayName,
 } from './scale-generator';
 import { SCALES } from '../theory/scales';
-import { TUNINGS } from '../theory/tunings';
+import { TUNINGS, type Tuning } from '../theory/tunings';
 import { pitchClass, midiOf, type PitchClass } from '../theory/notes';
 import { multiOctaveAMidi } from './multi-octave';
 import { KEYS_BY_ID, keySignatureFor, keySignatureLabelFor, spellingMap } from '../theory/keys';
@@ -840,7 +840,7 @@ describe('generateExercise — agility (spider)', () => {
 describe('formatDisplayName — agility', () => {
   function agilityParams(
     variant: Variant,
-    tuning = TUNINGS.fourStringEADG,
+    tuning: Tuning = TUNINGS.fourStringEADG,
   ) {
     return {
       scale: SCALES.chromatic,
