@@ -1446,6 +1446,11 @@ export function generateExercise(params: ExerciseParams): Exercise {
 }
 
 export function formatDisplayName(params: ExerciseParams): string {
+  // Agility drills have no key/scale/hand-position concept — display name
+  // is just the variant label.
+  if (params.variant.kind === 'bigX' || params.variant.kind === 'spider') {
+    return describeVariant(params.variant, params.scale, params.tuning);
+  }
   const root = params.rootName ?? pitchClassName(params.rootPc, 'sharp');
   const variantLabel = describeVariant(params.variant, params.scale, params.tuning);
   const openTag = params.useOpenStrings ? ' (open)' : '';
@@ -1510,10 +1515,21 @@ export function describeVariant(v: ExerciseParams['variant'], scale: Scale, tuni
       };
       return `${sizeLabels[v.size]} cycle ${dirSymbols[v.direction]}`;
     }
-    case 'bigX':
-      return 'Big X (placeholder)';
-    case 'spider':
-      return 'Spider (placeholder)';
+    case 'bigX': {
+      const names = tuning.openNoteNames
+        .slice(v.startString, v.startString + 4)
+        .join('-');
+      const dirSym = v.direction === 'forward' ? '↑' : '↓';
+      const spSym = v.spelling === 'sharp' ? '♯' : '♭';
+      return `Big X ${names} ${dirSym} ${spSym}`;
+    }
+    case 'spider': {
+      const lo = tuning.openNoteNames[v.lowerString];
+      const hi = tuning.openNoteNames[v.lowerString + 1];
+      const dirSym = v.direction === 'forward' ? '↑' : '↓';
+      const spSym = v.spelling === 'sharp' ? '♯' : '♭';
+      return `Spider ${lo}-${hi} ${dirSym} ${spSym}`;
+    }
   }
 }
 

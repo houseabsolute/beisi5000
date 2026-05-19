@@ -14,6 +14,7 @@ import { TUNINGS } from '../theory/tunings';
 import { pitchClass, midiOf, type PitchClass } from '../theory/notes';
 import { multiOctaveAMidi } from './multi-octave';
 import { KEYS_BY_ID, keySignatureFor, keySignatureLabelFor, spellingMap } from '../theory/keys';
+import type { Variant } from './types';
 
 describe('ascendingScaleMidi', () => {
   test('C major from C2 (MIDI 36) yields 8 ascending notes', () => {
@@ -833,5 +834,69 @@ describe('generateExercise — agility (spider)', () => {
     });
     expect(ex.sequence).toHaveLength(184);
     expect(ex.sequence[0]).toMatchObject({ string: 1, fret: 1 });
+  });
+});
+
+describe('formatDisplayName — agility', () => {
+  function agilityParams(
+    variant: Variant,
+    tuning = TUNINGS.fourStringEADG,
+  ) {
+    return {
+      scale: SCALES.chromatic,
+      rootPc: 0 as const,
+      rootName: 'C',
+      variant,
+      scaleDirection: 'updown' as const,
+      handPosition: 'front' as const,
+      tuning,
+      keySignature: 0,
+      keySignatureLabel: 'C',
+    };
+  }
+
+  test('bigX 4-string EADG startString=0 fwd sharp → "Big X E-A-D-G ↑ ♯"', () => {
+    const name = formatDisplayName(agilityParams({
+      kind: 'bigX', startString: 0, direction: 'forward', spelling: 'sharp',
+    }));
+    expect(name).toBe('Big X E-A-D-G ↑ ♯');
+  });
+
+  test('bigX 5-string BEADG startString=1 rev flat → "Big X E-A-D-G ↓ ♭"', () => {
+    const name = formatDisplayName(agilityParams(
+      { kind: 'bigX', startString: 1, direction: 'reverse', spelling: 'flat' },
+      TUNINGS.fiveStringBEADG,
+    ));
+    expect(name).toBe('Big X E-A-D-G ↓ ♭');
+  });
+
+  test('bigX 5-string BEADG startString=0 fwd sharp → "Big X B-E-A-D ↑ ♯"', () => {
+    const name = formatDisplayName(agilityParams(
+      { kind: 'bigX', startString: 0, direction: 'forward', spelling: 'sharp' },
+      TUNINGS.fiveStringBEADG,
+    ));
+    expect(name).toBe('Big X B-E-A-D ↑ ♯');
+  });
+
+  test('spider 4-string EADG lowerString=0 fwd sharp → "Spider E-A ↑ ♯"', () => {
+    const name = formatDisplayName(agilityParams({
+      kind: 'spider', lowerString: 0, direction: 'forward', spelling: 'sharp',
+    }));
+    expect(name).toBe('Spider E-A ↑ ♯');
+  });
+
+  test('spider 4-string EADG lowerString=2 rev flat → "Spider D-G ↓ ♭"', () => {
+    const name = formatDisplayName(agilityParams({
+      kind: 'spider', lowerString: 2, direction: 'reverse', spelling: 'flat',
+    }));
+    expect(name).toBe('Spider D-G ↓ ♭');
+  });
+
+  test('agility names do not contain key/scale prefix', () => {
+    const name = formatDisplayName(agilityParams({
+      kind: 'bigX', startString: 0, direction: 'forward', spelling: 'sharp',
+    }));
+    expect(name).not.toContain('Chromatic');
+    expect(name).not.toContain('C ');
   });
 });
