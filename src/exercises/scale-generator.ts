@@ -377,6 +377,7 @@ export function isHandPositionMeaningful(
   variant: Variant,
 ): boolean {
   if (variant.kind === 'arpeggioCycle') return false;
+  if (variant.kind === 'bigX' || variant.kind === 'spider') return false;
   if (variant.kind !== 'intervalWalk') return true;
   return walkingPairMaxSemitones(scale, variant) < 7;
 }
@@ -392,6 +393,7 @@ export function canonicalHandPositionForVariant(
   variant: Variant,
 ): HandPosition {
   if (variant.kind === 'arpeggioCycle') return 'front';
+  if (variant.kind === 'bigX' || variant.kind === 'spider') return 'front';
   if (variant.kind !== 'intervalWalk') return 'front';
   return variant.intervalDir === 'down' ? 'back' : 'front';
 }
