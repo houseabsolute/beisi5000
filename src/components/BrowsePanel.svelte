@@ -35,7 +35,8 @@
     | 'mirror'
     | 'walkUp'
     | 'walkDown'
-    | 'arpeggios';
+    | 'arpeggios'
+    | 'agility';
   type OpenChoice = 'either' | 'fretted' | 'open';
 
   interface BrowseFilters {
@@ -163,6 +164,8 @@
         return v.kind === 'intervalWalk' && v.intervalDir === 'down';
       case 'arpeggios':
         return v.kind === 'arpeggioCycle';
+      case 'agility':
+        return v.kind === 'bigX' || v.kind === 'spider';
       default:
         return true;
     }
@@ -269,7 +272,7 @@
     <section>
       <span class="lbl">Variant</span>
       <div class="chips">
-        {#each [{ id: 'any', label: 'Any' }, { id: 'plain', label: 'Plain scale' }, { id: 'multiOctave', label: 'Multi-octave' }, { id: 'consecutive', label: 'Consecutive' }, { id: 'mirror', label: 'Mirror' }, { id: 'walkUp', label: 'Walking ↑' }, { id: 'walkDown', label: 'Walking ↓' }, { id: 'arpeggios', label: 'Arpeggios' }] as v}
+        {#each [{ id: 'any', label: 'Any' }, { id: 'plain', label: 'Plain scale' }, { id: 'multiOctave', label: 'Multi-octave' }, { id: 'consecutive', label: 'Consecutive' }, { id: 'mirror', label: 'Mirror' }, { id: 'walkUp', label: 'Walking ↑' }, { id: 'walkDown', label: 'Walking ↓' }, { id: 'arpeggios', label: 'Arpeggios' }, { id: 'agility', label: 'Agility' }] as v}
           <button
             class="chip-toggle"
             class:on={variantFamily === v.id}
