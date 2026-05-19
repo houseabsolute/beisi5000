@@ -18,10 +18,11 @@ A randomized practice picker for bass scales, end-to-end:
 - Settings UI (slide-out side panel) — all 17 keys, all scales, all variants, all hand positions, metronome controls, display toggles.
 - All settings persisted to localStorage.
 
-State: 272 unit tests passing, svelte-check clean. Universe currently 16,134 exercises across 4 tunings (was 17,058 pre-arpeggios; arpeggios add ~2,552 entries, with some adjustments to other categories from picker filter tightening). Walking-exercise and arpeggio layout scans: 0 cross-string ≥8 fret jumps.
+State: 316 unit tests passing, svelte-check clean. Universe currently 16,150 exercises across 4 tunings (default 4-string adds 16 agility entries: 4 Big X + 12 Spider). Walking-exercise, arpeggio, and agility layout scans: 0 cross-string ≥8 fret jumps.
 
 ## Recent additions (post-MVP polish)
 
+- [x] **Hand-agility drills — Big X and Spider.** Chromatic finger-coordination patterns scanning frets 1 → 12 → 1. Both have 4 variants: 2 directions (forward / reverse) × 2 spellings (sharp / flat). Big X plays diagonals across 4 adjacent strings (random 4-subset rotated by picker on 5/6-string basses). Spider plays interleaved patterns on adjacent string pairs (rotated by picker). 96 agility universe entries across 4 tunings. Spec: [docs/superpowers/specs/2026-05-18-agility-drills-design.md](superpowers/specs/2026-05-18-agility-drills-design.md). New module: [src/exercises/agility.ts](../src/exercises/agility.ts).
 - [x] **Arpeggio cycle exercises.** 5 chord sizes (triad → 13th) × 4 directions (allUp / upDown / downUp / zigzag) on 14 diatonic 7-note scales × 17 keys. Picker emits one canonical entry per `(scale, key, size, direction)`; root constrained to the bottom 2 strings (4-string) / bottom 3 strings (5/6-string). Spec: [docs/superpowers/specs/2026-05-17-arpeggios-design.md](superpowers/specs/2026-05-17-arpeggios-design.md). New helpers in [src/exercises/variants.ts](../src/exercises/variants.ts) (`arpUp`, `arpDown`, `arpeggioCycleMidi`) and [src/exercises/scale-generator.ts](../src/exercises/scale-generator.ts) (`arpeggioCycleApex`, `maxStringIndex` constraint). `canonicalHandPositionForWideWalk` renamed to `canonicalHandPositionForVariant`.
 - [x] **DP-based lookahead in `layOnFretboard`** — `solveLookaheadDP` runs a layered DP over the last `PIN_LOOKAHEAD=6` notes; per-step cost is squared so the DP minimizes L2 movement and distributes string-crossings evenly instead of landing them on the final note. Applied to walking, consecutive, and mirror variants.
 - [x] **Per-string cap enforced in fall-back** — the picker's fall-back path now respects the per-string cap (3 notes max after leaving the starting string) EXCEPT on the top string, where multi-octave A's apex extension can run longer. Spreads asc/desc evenly without breaking the mo-A spiral.
@@ -55,8 +56,6 @@ Bundle size cleanup (lazy-load AlphaTab via dynamic import, ~1.3 MB → ~200 KB)
   - Chord-progression exercises — ii–V–I, cycle of fifths, diatonic 7ths chained, etc. — a different exercise unit (multi-key, not single-key cycle).
   - Arpeggios on non-diatonic scales (pentatonics, chromatic, octatonic) — would need a different chord-tone-selection convention.
   - User-selected hand position for arpeggios.
-- Big X — hand-agility exercise.
-- Spider — two-string crawl.
 - Other time signatures (currently 4/4 only).
 - Exercise history / streaks / stats.
 - Cloud sync / multi-user accounts.
