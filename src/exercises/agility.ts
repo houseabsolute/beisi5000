@@ -135,7 +135,7 @@ function spiderAtFret(
 export function agilitySpellingMap(
   spelling: AgilitySpelling,
 ): Map<PitchClass, AccidentalKind> {
-  const acc: AccidentalKind = spelling === 'sharp' ? 'sharp' : 'flat';
+  const acc: AccidentalKind = spelling;
   const m = new Map<PitchClass, AccidentalKind>();
   for (const pc of BLACK_KEY_PCS) {
     m.set(pc as PitchClass, acc);

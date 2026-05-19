@@ -122,14 +122,14 @@ export function paramsFromKey(key: string): ExerciseParams | null {
           kind: 'bigX',
           startString: index,
           direction,
-          spelling: spellingStr as 'sharp' | 'flat',
+          spelling: spellingStr,
         };
       } else if (subkind === 'spider') {
         variant = {
           kind: 'spider',
           lowerString: index,
           direction,
-          spelling: spellingStr as 'sharp' | 'flat',
+          spelling: spellingStr,
         };
       } else {
         return null;
