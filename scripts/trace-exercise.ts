@@ -36,6 +36,12 @@ if (!keyId || !scaleId || !variantSpec || !handPosition) {
   console.error(
     'usage: tsx scripts/trace-exercise.ts <keyId> <scaleId> <variantSpec> <handPosition> [tuningId]',
   );
+  console.error('  variantSpec examples:');
+  console.error('    plain, walk+3, walk-5, moA2, moB2, cons3, mirror2');
+  console.error('    arp3-allUp, arp4-upDown, arp5-downUp, arp6-zigzag');
+  console.error('    bigx<S>-<dir>-<sp>          → Big X, e.g. bigx0-fwd-sharp');
+  console.error('    spider<L>-<dir>-<sp>        → Spider, e.g. spider2-rev-flat');
+  console.error('      <dir> = fwd | rev, <sp> = sharp | flat');
   process.exit(2);
 }
 
@@ -99,6 +105,24 @@ function parseVariant(spec: string): Variant {
       kind: 'arpeggioCycle',
       size: size as 3 | 4 | 5 | 6 | 7,
       direction: arp[2] as 'allUp' | 'upDown' | 'downUp' | 'zigzag',
+    };
+  }
+  const bigx = spec.match(/^bigx(\d+)-(fwd|rev)-(sharp|flat)$/);
+  if (bigx) {
+    return {
+      kind: 'bigX',
+      startString: Number(bigx[1]),
+      direction: bigx[2] === 'fwd' ? 'forward' : 'reverse',
+      spelling: bigx[3] as 'sharp' | 'flat',
+    };
+  }
+  const spider = spec.match(/^spider(\d+)-(fwd|rev)-(sharp|flat)$/);
+  if (spider) {
+    return {
+      kind: 'spider',
+      lowerString: Number(spider[1]),
+      direction: spider[2] === 'fwd' ? 'forward' : 'reverse',
+      spelling: spider[3] as 'sharp' | 'flat',
     };
   }
   throw new Error(`Unknown variant spec: ${spec}`);

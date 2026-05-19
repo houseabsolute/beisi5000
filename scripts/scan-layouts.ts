@@ -6,6 +6,7 @@
 //   npx tsx scripts/scan-layouts.ts                  # all exercises
 //   npx tsx scripts/scan-layouts.ts walking          # only interval-walk variants
 //   npx tsx scripts/scan-layouts.ts arpeggio         # only arpeggio cycle variants
+//   npx tsx scripts/scan-layouts.ts agility           # only agility (Big X + Spider)
 //
 // Flags any of:
 //   - Negative frets (should never happen — picker should reject these combos).
@@ -20,6 +21,7 @@ import type { Variant } from '../src/exercises/types.ts';
 
 const onlyWalking = process.argv.includes('walking');
 const onlyArpeggio = process.argv.includes('arpeggio');
+const onlyAgility = process.argv.includes('agility');
 
 const s = defaultSettings();
 const universe = generateUniverse(s);
@@ -31,6 +33,11 @@ const samples: { tag: string; msg: string }[] = [];
 for (const params of universe) {
   if (onlyWalking && params.variant.kind !== 'intervalWalk') continue;
   if (onlyArpeggio && params.variant.kind !== 'arpeggioCycle') continue;
+  if (
+    onlyAgility &&
+    params.variant.kind !== 'bigX' &&
+    params.variant.kind !== 'spider'
+  ) continue;
   totalChecked++;
   let ex;
   try {
@@ -90,7 +97,7 @@ for (const params of universe) {
 }
 
 console.log(
-  `${totalIssues} issues out of ${totalChecked} exercises${onlyWalking ? ' (walking only)' : ''}${onlyArpeggio ? ' (arpeggio only)' : ''}`,
+  `${totalIssues} issues out of ${totalChecked} exercises${onlyWalking ? ' (walking only)' : ''}${onlyArpeggio ? ' (arpeggio only)' : ''}${onlyAgility ? ' (agility only)' : ''}`,
 );
 const SAMPLE = 20;
 for (const issue of samples.slice(0, SAMPLE)) {
@@ -117,9 +124,9 @@ function variantTag(v: Variant): string {
     case 'arpeggioCycle':
       return `arp ${v.size}-${v.direction}`;
     case 'bigX':
-      return 'bigX placeholder';
+      return `bigX ${v.startString}-${v.direction === 'forward' ? 'fwd' : 'rev'}-${v.spelling}`;
     case 'spider':
-      return 'spider placeholder';
+      return `spider ${v.lowerString}-${v.direction === 'forward' ? 'fwd' : 'rev'}-${v.spelling}`;
   }
 }
 
