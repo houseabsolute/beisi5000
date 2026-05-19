@@ -781,3 +781,57 @@ describe('formatDisplayName — arpeggios', () => {
     expect(name).not.toContain('Back');
   });
 });
+
+describe('generateExercise — agility (bigX)', () => {
+  test('Big X 4-string EADG, startString=0, forward, sharp — 184 notes, starts at E fret 1', () => {
+    const ex = generateExercise({
+      scale: SCALES.chromatic,
+      rootPc: 0 as const,
+      rootName: 'C',
+      variant: { kind: 'bigX', startString: 0, direction: 'forward', spelling: 'sharp' },
+      scaleDirection: 'updown',
+      handPosition: 'front',
+      tuning: TUNINGS.fourStringEADG,
+      keySignature: 0,
+      keySignatureLabel: 'C',
+      spelling: undefined,
+    });
+    expect(ex.sequence).toHaveLength(184);
+    expect(ex.sequence[0]).toMatchObject({ string: 0, fret: 1 });
+  });
+
+  test('Big X reverse — first note is the top-right corner (s=3, f=4)', () => {
+    const ex = generateExercise({
+      scale: SCALES.chromatic,
+      rootPc: 0 as const,
+      rootName: 'C',
+      variant: { kind: 'bigX', startString: 0, direction: 'reverse', spelling: 'sharp' },
+      scaleDirection: 'updown',
+      handPosition: 'front',
+      tuning: TUNINGS.fourStringEADG,
+      keySignature: 0,
+      keySignatureLabel: 'C',
+      spelling: undefined,
+    });
+    expect(ex.sequence[0]).toMatchObject({ string: 3, fret: 4 });
+  });
+});
+
+describe('generateExercise — agility (spider)', () => {
+  test('Spider 4-string EADG, lowerString=1, forward, flat — 184 notes, starts at A fret 1', () => {
+    const ex = generateExercise({
+      scale: SCALES.chromatic,
+      rootPc: 0 as const,
+      rootName: 'C',
+      variant: { kind: 'spider', lowerString: 1, direction: 'forward', spelling: 'flat' },
+      scaleDirection: 'updown',
+      handPosition: 'front',
+      tuning: TUNINGS.fourStringEADG,
+      keySignature: 0,
+      keySignatureLabel: 'C',
+      spelling: undefined,
+    });
+    expect(ex.sequence).toHaveLength(184);
+    expect(ex.sequence[0]).toMatchObject({ string: 1, fret: 1 });
+  });
+});

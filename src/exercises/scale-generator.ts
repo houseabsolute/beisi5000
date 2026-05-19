@@ -14,6 +14,7 @@ import {
 } from '../theory/fingerings';
 import { emitAlphaTex } from '../notation/alphatex-emitter';
 import { multiOctaveAMidi, multiOctaveBMidi } from './multi-octave';
+import { bigXSequence, spiderSequence } from './agility';
 import {
   arpeggioCycleMidi,
   intervalWalkAscMidi,
@@ -1281,6 +1282,23 @@ export function layOnFretboard(
 export function generateExercise(params: ExerciseParams): Exercise {
   const { scale, rootPc, variant, handPosition, tuning, useOpenStrings } =
     params;
+
+  // Agility drills emit FretboardNote[] directly — no scale/key/hand-position
+  // lookup needed. Short-circuit before pickStartingPosition.
+  if (variant.kind === 'bigX' || variant.kind === 'spider') {
+    const sequence =
+      variant.kind === 'bigX'
+        ? bigXSequence(tuning, variant.startString, variant.direction)
+        : spiderSequence(tuning, variant.lowerString, variant.direction);
+    const displayName = formatDisplayName(params);
+    const alphaTex = emitAlphaTex(sequence, tuning, {
+      title: displayName,
+      keySignature: params.keySignature,
+      keySignatureLabel: params.keySignatureLabel,
+      spelling: params.spelling,
+    });
+    return { params, sequence, alphaTex, displayName };
+  }
 
   // Use the same constraints the picker validated. Without these,
   // walking-down variants would start on a string with no string below,
