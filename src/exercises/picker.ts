@@ -306,7 +306,6 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
   const result: ExerciseParams[] = [];
 
   for (const variant of agilityVariants) {
-    if (variant.kind !== 'bigX' && variant.kind !== 'spider') continue;
     result.push({
       scale: SCALES.chromatic,
       rootPc: 0,
