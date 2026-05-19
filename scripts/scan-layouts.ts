@@ -116,6 +116,10 @@ function variantTag(v: Variant): string {
       return `mo-B ${v.octaves}oct`;
     case 'arpeggioCycle':
       return `arp ${v.size}-${v.direction}`;
+    case 'bigX':
+      return 'bigX placeholder';
+    case 'spider':
+      return 'spider placeholder';
   }
 }
 

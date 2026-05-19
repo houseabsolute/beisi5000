@@ -161,6 +161,12 @@ export function paramsKey(p: ExerciseParams): string {
     case 'arpeggioCycle':
       variantKey = `arpeggio:${p.variant.size}:${p.variant.direction}`;
       break;
+    case 'bigX':
+      variantKey = 'agility:bigX:placeholder';
+      break;
+    case 'spider':
+      variantKey = 'agility:spider:placeholder';
+      break;
   }
   return [
     p.tuning.id,

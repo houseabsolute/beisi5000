@@ -7,6 +7,9 @@ export type ScaleDirection = 'up' | 'down' | 'updown';
 
 export type ArpDirection = 'allUp' | 'upDown' | 'downUp' | 'zigzag';
 
+export type AgilityDirection = 'forward' | 'reverse';
+export type AgilitySpelling = 'sharp' | 'flat';
+
 export type Variant =
   | { kind: 'plain' }
   | { kind: 'consecutive'; groupSize: number }
@@ -18,7 +21,9 @@ export type Variant =
     }
   | { kind: 'multiOctaveA'; octaves: number }
   | { kind: 'multiOctaveB'; octaves: number }
-  | { kind: 'arpeggioCycle'; size: 3 | 4 | 5 | 6 | 7; direction: ArpDirection };
+  | { kind: 'arpeggioCycle'; size: 3 | 4 | 5 | 6 | 7; direction: ArpDirection }
+  | { kind: 'bigX'; startString: number; direction: AgilityDirection; spelling: AgilitySpelling }
+  | { kind: 'spider'; lowerString: number; direction: AgilityDirection; spelling: AgilitySpelling };
 
 export interface ExerciseParams {
   scale: Scale;

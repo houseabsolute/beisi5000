@@ -1490,6 +1490,10 @@ export function describeVariant(v: ExerciseParams['variant'], scale: Scale): str
       };
       return `${sizeLabels[v.size]} cycle ${dirSymbols[v.direction]}`;
     }
+    case 'bigX':
+      return 'Big X (placeholder)';
+    case 'spider':
+      return 'Spider (placeholder)';
   }
 }
 
