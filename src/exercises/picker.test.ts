@@ -630,3 +630,78 @@ describe('generateUniverse — agility universe', () => {
     expect(generateUniverse(s)).toHaveLength(0);
   });
 });
+
+describe('paramsKey / paramsFromKey — agility round-trip', () => {
+  function makeAgilitySettings(opts: { bigX: boolean; spider: boolean }) {
+    return {
+      ...baseSettings,
+      enabledVariants: {
+        plain: false, multiOctaveA_2: false, multiOctaveA_3: false,
+        multiOctaveB_2: false, consecutive_3: false, consecutive_4: false,
+        mirror_3: false, mirror_4: false, intervalWalks: false,
+      },
+      enabledArpeggios: {
+        sizes: { triad: false, seventh: false, ninth: false, eleventh: false, thirteenth: false },
+        directions: { allUp: false, upDown: false, downUp: false, zigzag: false },
+      },
+      enabledAgility: opts,
+    } as Settings;
+  }
+
+  test('bigX:0:fwd:sharp round-trips', () => {
+    const s = makeAgilitySettings({ bigX: true, spider: false });
+    const universe = generateUniverse(s);
+    const target = universe.find(
+      (p) =>
+        p.variant.kind === 'bigX' &&
+        p.variant.startString === 0 &&
+        p.variant.direction === 'forward' &&
+        p.variant.spelling === 'sharp',
+    );
+    expect(target).toBeDefined();
+    const key = paramsKey(target!);
+    expect(key).toContain('agility:bigX:0:fwd:sharp');
+    const restored = paramsFromKey(key);
+    expect(restored).not.toBeNull();
+    expect(restored!.variant.kind).toBe('bigX');
+    if (restored!.variant.kind === 'bigX') {
+      expect(restored!.variant.startString).toBe(0);
+      expect(restored!.variant.direction).toBe('forward');
+      expect(restored!.variant.spelling).toBe('sharp');
+    }
+  });
+
+  test('bigX:1:rev:flat round-trips on 5-string', () => {
+    const s = makeAgilitySettings({ bigX: true, spider: false });
+    const universe = generateUniverse({ ...s, tuningId: 'fiveStringBEADG' });
+    const target = universe.find(
+      (p) =>
+        p.variant.kind === 'bigX' &&
+        p.variant.startString === 1 &&
+        p.variant.direction === 'reverse' &&
+        p.variant.spelling === 'flat',
+    );
+    expect(target).toBeDefined();
+    const key = paramsKey(target!);
+    expect(key).toContain('agility:bigX:1:rev:flat');
+    const restored = paramsFromKey(key);
+    expect(restored!.variant.kind).toBe('bigX');
+  });
+
+  test('spider:2:fwd:flat round-trips', () => {
+    const s = makeAgilitySettings({ bigX: false, spider: true });
+    const universe = generateUniverse(s);
+    const target = universe.find(
+      (p) =>
+        p.variant.kind === 'spider' &&
+        p.variant.lowerString === 2 &&
+        p.variant.direction === 'forward' &&
+        p.variant.spelling === 'flat',
+    );
+    expect(target).toBeDefined();
+    const key = paramsKey(target!);
+    expect(key).toContain('agility:spider:2:fwd:flat');
+    const restored = paramsFromKey(key);
+    expect(restored!.variant.kind).toBe('spider');
+  });
+});

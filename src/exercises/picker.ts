@@ -106,6 +106,34 @@ export function paramsFromKey(key: string): ExerciseParams | null {
         size: size as 3 | 4 | 5 | 6 | 7,
         direction: dirStr as 'allUp' | 'upDown' | 'downUp' | 'zigzag',
       };
+    } else if (kind === 'agility') {
+      // rest format: "<subkind>:<index>:<dir>:<spelling>"
+      // e.g., "bigX:0:fwd:sharp" or "spider:2:rev:flat"
+      const parts = rest.split(':');
+      if (parts.length !== 4) return null;
+      const [subkind, indexStr, dirStr, spellingStr] = parts;
+      const index = Number(indexStr);
+      if (!Number.isFinite(index)) return null;
+      const direction = dirStr === 'fwd' ? 'forward' : dirStr === 'rev' ? 'reverse' : null;
+      if (direction === null) return null;
+      if (spellingStr !== 'sharp' && spellingStr !== 'flat') return null;
+      if (subkind === 'bigX') {
+        variant = {
+          kind: 'bigX',
+          startString: index,
+          direction,
+          spelling: spellingStr as 'sharp' | 'flat',
+        };
+      } else if (subkind === 'spider') {
+        variant = {
+          kind: 'spider',
+          lowerString: index,
+          direction,
+          spelling: spellingStr as 'sharp' | 'flat',
+        };
+      } else {
+        return null;
+      }
     } else {
       return null;
     }
@@ -163,10 +191,14 @@ export function paramsKey(p: ExerciseParams): string {
       variantKey = `arpeggio:${p.variant.size}:${p.variant.direction}`;
       break;
     case 'bigX':
-      variantKey = 'agility:bigX:placeholder';
+      variantKey = `agility:bigX:${p.variant.startString}:${
+        p.variant.direction === 'forward' ? 'fwd' : 'rev'
+      }:${p.variant.spelling}`;
       break;
     case 'spider':
-      variantKey = 'agility:spider:placeholder';
+      variantKey = `agility:spider:${p.variant.lowerString}:${
+        p.variant.direction === 'forward' ? 'fwd' : 'rev'
+      }:${p.variant.spelling}`;
       break;
   }
   return [
