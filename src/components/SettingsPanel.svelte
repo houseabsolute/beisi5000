@@ -111,6 +111,82 @@
     }));
   }
 
+  function setAllHandPositions(enabled: boolean): void {
+    settings.update((s) => ({
+      ...s,
+      enabledHandPositions: enabled ? ['front', 'mid', 'back'] : [],
+    }));
+  }
+
+  function setAllVariants(enabled: boolean): void {
+    settings.update((s) => ({
+      ...s,
+      enabledVariants: {
+        plain: enabled,
+        multiOctaveA_2: enabled,
+        multiOctaveA_3: enabled,
+        multiOctaveB_2: enabled,
+        consecutive_3: enabled,
+        consecutive_4: enabled,
+        mirror_3: enabled,
+        mirror_4: enabled,
+        intervalWalks: enabled,
+      },
+    }));
+  }
+
+  function setAllArpeggios(enabled: boolean): void {
+    // One button pair for the whole Arpeggios section — flips both
+    // sizes AND directions together. A cycle with sizes all-on but
+    // directions all-off (or vice-versa) emits zero variants, so
+    // toggling the two together is the natural unit.
+    settings.update((s) => ({
+      ...s,
+      enabledArpeggios: {
+        sizes: {
+          triad: enabled,
+          seventh: enabled,
+          ninth: enabled,
+          eleventh: enabled,
+          thirteenth: enabled,
+        },
+        directions: {
+          allUp: enabled,
+          upDown: enabled,
+          downUp: enabled,
+          zigzag: enabled,
+        },
+      },
+    }));
+  }
+
+  function setAllAgility(enabled: boolean): void {
+    settings.update((s) => ({
+      ...s,
+      enabledAgility: { bigX: enabled, spider: enabled },
+    }));
+  }
+
+  function setAllKeys(enabled: boolean): void {
+    settings.update((s) => ({
+      ...s,
+      enabledKeys: enabled ? KEYS.map((k) => k.id) : [],
+    }));
+  }
+
+  function setAllScales(enabled: boolean): void {
+    settings.update((s) => ({
+      ...s,
+      enabledScales: (Object.keys(SCALES) as ScaleId[]).reduce(
+        (acc, id) => {
+          acc[id] = enabled;
+          return acc;
+        },
+        {} as Record<ScaleId, boolean>,
+      ),
+    }));
+  }
+
   function setMetro<K extends keyof typeof $settings.metronome>(
     k: K,
     v: (typeof $settings.metronome)[K],
