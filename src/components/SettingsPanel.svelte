@@ -241,7 +241,13 @@
     </section>
 
     <section>
-      <h3>Hand positions</h3>
+      <div class="section-header">
+        <h3>Hand positions</h3>
+        <div class="bulk-section">
+          <button class="bulk-section-btn" onclick={() => setAllHandPositions(true)} type="button">All</button>
+          <button class="bulk-section-btn" onclick={() => setAllHandPositions(false)} type="button">None</button>
+        </div>
+      </div>
       <div class="chips">
         {#each HAND_POSITIONS as hp}
           <label class="chip-toggle">
@@ -257,7 +263,13 @@
     </section>
 
     <section>
-      <h3>Variants</h3>
+      <div class="section-header">
+        <h3>Variants</h3>
+        <div class="bulk-section">
+          <button class="bulk-section-btn" onclick={() => setAllVariants(true)} type="button">All</button>
+          <button class="bulk-section-btn" onclick={() => setAllVariants(false)} type="button">None</button>
+        </div>
+      </div>
       <label class="checkbox">
         <input
           type="checkbox"
@@ -337,7 +349,13 @@
     </section>
 
     <section>
-      <h3>Arpeggios</h3>
+      <div class="section-header">
+        <h3>Arpeggios</h3>
+        <div class="bulk-section">
+          <button class="bulk-section-btn" onclick={() => setAllArpeggios(true)} type="button">All</button>
+          <button class="bulk-section-btn" onclick={() => setAllArpeggios(false)} type="button">None</button>
+        </div>
+      </div>
       <p class="hint">Cycles diatonic chord arpeggios through the key. Only available on 7-note scales.</p>
       <div class="arp-subhead">Sizes</div>
       <div class="chips">
@@ -420,7 +438,13 @@
     </section>
 
     <section>
-      <h3>Hand-agility drills</h3>
+      <div class="section-header">
+        <h3>Hand-agility drills</h3>
+        <div class="bulk-section">
+          <button class="bulk-section-btn" onclick={() => setAllAgility(true)} type="button">All</button>
+          <button class="bulk-section-btn" onclick={() => setAllAgility(false)} type="button">None</button>
+        </div>
+      </div>
       <p class="hint">Chromatic finger-coordination patterns up the neck. No key — pure technique.</p>
       <label class="checkbox">
         <input
@@ -441,7 +465,13 @@
     </section>
 
     <section>
-      <h3>Keys</h3>
+      <div class="section-header">
+        <h3>Keys</h3>
+        <div class="bulk-section">
+          <button class="bulk-section-btn" onclick={() => setAllKeys(true)} type="button">All</button>
+          <button class="bulk-section-btn" onclick={() => setAllKeys(false)} type="button">None</button>
+        </div>
+      </div>
       <div class="chips">
         {#each SORTED_KEYS as key}
           <label class="chip-toggle">
@@ -457,7 +487,13 @@
     </section>
 
     <section>
-      <h3>Scales</h3>
+      <div class="section-header">
+        <h3>Scales</h3>
+        <div class="bulk-section">
+          <button class="bulk-section-btn" onclick={() => setAllScales(true)} type="button">All</button>
+          <button class="bulk-section-btn" onclick={() => setAllScales(false)} type="button">None</button>
+        </div>
+      </div>
       {#each Object.entries(SCALE_CATEGORIES) as [category, scales] (category)}
         <details open>
           <summary class="category">{category}</summary>
@@ -785,5 +821,34 @@
     font-size: 12px;
     color: var(--text-dim);
     line-height: 1.4;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 10px;
+  }
+  .section-header h3 {
+    margin: 0;
+  }
+  .bulk-section {
+    display: flex;
+    gap: 4px;
+  }
+  .bulk-section-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .bulk-section-btn:hover {
+    background: var(--border);
+    color: var(--text);
   }
 </style>
