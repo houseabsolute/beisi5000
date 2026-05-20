@@ -188,46 +188,15 @@
   }
 
   function enableAll(): void {
-    settings.update((s) => ({
-      ...s,
-      enabledVariants: {
-        plain: true,
-        multiOctaveA_2: true,
-        multiOctaveA_3: true,
-        multiOctaveB_2: true,
-        consecutive_3: true,
-        consecutive_4: true,
-        mirror_3: true,
-        mirror_4: true,
-        intervalWalks: true,
-      },
-      enabledArpeggios: {
-        sizes: {
-          triad: true,
-          seventh: true,
-          ninth: true,
-          eleventh: true,
-          thirteenth: true,
-        },
-        directions: {
-          allUp: true,
-          upDown: true,
-          downUp: true,
-          zigzag: true,
-        },
-      },
-      enabledAgility: { bigX: true, spider: true },
-      enabledScales: (Object.keys(SCALES) as ScaleId[]).reduce(
-        (acc, id) => {
-          acc[id] = true;
-          return acc;
-        },
-        {} as Record<ScaleId, boolean>,
-      ),
-      enabledKeys: KEYS.map((k) => k.id),
-      enabledHandPositions: ['front', 'mid', 'back'],
-      includeOpenStringVariants: true,
-    }));
+    setAllHandPositions(true);
+    setAllVariants(true);
+    setAllArpeggios(true);
+    setAllAgility(true);
+    setAllKeys(true);
+    setAllScales(true);
+    // Open-string variants — not a multi-toggle section, but
+    // semantically part of "enable everything".
+    settings.update((s) => ({ ...s, includeOpenStringVariants: true }));
   }
 
   function resetToDefaults(): void {

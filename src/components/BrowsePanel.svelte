@@ -243,7 +243,7 @@
       </div>
     </section>
 
-    <section class:disabled={scaleDisabled}>
+    <section class:disabled={scaleDisabled} role="group" aria-disabled={scaleDisabled}>
       <label class="row">
         <span class="lbl">Scale</span>
         <select bind:value={scaleId}>
@@ -256,13 +256,13 @@
             </optgroup>
           {/each}
         </select>
-        {#if scaleDisabled}
-          <span class="hint">Not applicable for {variantFamily}</span>
-        {/if}
       </label>
+      {#if scaleDisabled}
+        <span class="hint">Not applicable for {variantFamily}</span>
+      {/if}
     </section>
 
-    <section class:disabled={keyDisabled}>
+    <section class:disabled={keyDisabled} role="group" aria-disabled={keyDisabled}>
       <span class="lbl">Key</span>
       {#if keyDisabled}
         <span class="hint">Not applicable for {variantFamily}</span>
@@ -285,7 +285,7 @@
       </div>
     </section>
 
-    <section class:disabled={handDisabled}>
+    <section class:disabled={handDisabled} role="group" aria-disabled={handDisabled}>
       <span class="lbl">Hand</span>
       {#if handDisabled}
         <span class="hint">Not applicable for {variantFamily}</span>
