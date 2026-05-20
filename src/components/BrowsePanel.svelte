@@ -213,6 +213,20 @@
     </section>
 
     <section>
+      <span class="lbl">Variant</span>
+      <div class="chips">
+        {#each [{ id: 'any', label: 'Any' }, { id: 'plain', label: 'Plain scale' }, { id: 'multiOctave', label: 'Multi-octave' }, { id: 'consecutive', label: 'Consecutive' }, { id: 'mirror', label: 'Mirror' }, { id: 'walkUp', label: 'Walking ↑' }, { id: 'walkDown', label: 'Walking ↓' }, { id: 'arpeggios', label: 'Arpeggios' }, { id: 'agility', label: 'Agility' }] as v}
+          <button
+            class="chip-toggle"
+            class:on={variantFamily === v.id}
+            onclick={() => (variantFamily = v.id as typeof variantFamily)}
+            type="button">{v.label}</button
+          >
+        {/each}
+      </div>
+    </section>
+
+    <section>
       <label class="row">
         <span class="lbl">Scale</span>
         <select bind:value={scaleId}>
@@ -264,20 +278,6 @@
             onclick={() => (hand = hp)}
             type="button"
             >{handPositionEmoji(hp)} {handPositionLabel(hp)}</button
-          >
-        {/each}
-      </div>
-    </section>
-
-    <section>
-      <span class="lbl">Variant</span>
-      <div class="chips">
-        {#each [{ id: 'any', label: 'Any' }, { id: 'plain', label: 'Plain scale' }, { id: 'multiOctave', label: 'Multi-octave' }, { id: 'consecutive', label: 'Consecutive' }, { id: 'mirror', label: 'Mirror' }, { id: 'walkUp', label: 'Walking ↑' }, { id: 'walkDown', label: 'Walking ↓' }, { id: 'arpeggios', label: 'Arpeggios' }, { id: 'agility', label: 'Agility' }] as v}
-          <button
-            class="chip-toggle"
-            class:on={variantFamily === v.id}
-            onclick={() => (variantFamily = v.id as typeof variantFamily)}
-            type="button">{v.label}</button
           >
         {/each}
       </div>
