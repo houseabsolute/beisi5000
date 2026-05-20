@@ -120,17 +120,34 @@
     return generateUniverse(synthetic);
   });
 
+  // When the user picks a Variant whose universe entries are canonical
+  // (no scale / key / hand variation), the corresponding filter rows
+  // don't affect the result list — grey them out and treat them as 'any'
+  // so a stale stored value doesn't quietly filter results to empty.
+  const scaleDisabled = $derived(variantFamily === 'agility');
+  const keyDisabled = $derived(variantFamily === 'agility');
+  const handDisabled = $derived(
+    variantFamily === 'agility' || variantFamily === 'arpeggios',
+  );
+
+  const effectiveScaleId = $derived(scaleDisabled ? 'any' : scaleId);
+  const effectiveKeyId = $derived(keyDisabled ? 'any' : keyId);
+  const effectiveHand = $derived(handDisabled ? 'any' : hand);
+
   const results = $derived.by(() =>
     fullUniverse.filter((p) => {
       if (
-        scaleId !== 'any' &&
-        p.scale.name !== SCALES[scaleId as ScaleId]?.name
+        effectiveScaleId !== 'any' &&
+        p.scale.name !== SCALES[effectiveScaleId as ScaleId]?.name
       ) {
         return false;
       }
-      if (keyId !== 'any' && p.rootName !== KEYS.find((k) => k.id === keyId)?.name)
+      if (
+        effectiveKeyId !== 'any' &&
+        p.rootName !== KEYS.find((k) => k.id === effectiveKeyId)?.name
+      )
         return false;
-      if (hand !== 'any' && p.handPosition !== hand) return false;
+      if (effectiveHand !== 'any' && p.handPosition !== effectiveHand) return false;
       if (variantFamily !== 'any' && !matchVariantFamily(p.variant, variantFamily))
         return false;
       if (openStrings === 'open' && !p.useOpenStrings) return false;
@@ -226,7 +243,7 @@
       </div>
     </section>
 
-    <section>
+    <section class:disabled={scaleDisabled}>
       <label class="row">
         <span class="lbl">Scale</span>
         <select bind:value={scaleId}>
@@ -239,11 +256,17 @@
             </optgroup>
           {/each}
         </select>
+        {#if scaleDisabled}
+          <span class="hint">Not applicable for {variantFamily}</span>
+        {/if}
       </label>
     </section>
 
-    <section>
+    <section class:disabled={keyDisabled}>
       <span class="lbl">Key</span>
+      {#if keyDisabled}
+        <span class="hint">Not applicable for {variantFamily}</span>
+      {/if}
       <div class="chips">
         <button
           class="chip-toggle"
@@ -262,8 +285,11 @@
       </div>
     </section>
 
-    <section>
+    <section class:disabled={handDisabled}>
       <span class="lbl">Hand</span>
+      {#if handDisabled}
+        <span class="hint">Not applicable for {variantFamily}</span>
+      {/if}
       <div class="chips">
         <button
           class="chip-toggle"
@@ -487,5 +513,14 @@
     padding: 14px 18px;
     color: var(--text-dim);
     font-size: 12px;
+  }
+  section.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  section.disabled .hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-left: 8px;
   }
 </style>
