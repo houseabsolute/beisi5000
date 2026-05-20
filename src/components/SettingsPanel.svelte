@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { settings } from '../stores/settings';
+  import { settings, defaultSettings } from '../stores/settings';
   import { SCALES, type ScaleId, SCALE_CATEGORIES } from '../theory/scales';
   import { TUNINGS, type TuningId } from '../theory/tunings';
   import { HAND_POSITIONS, handPositionLabel, handPositionEmoji } from '../theory/fingerings';
@@ -187,6 +187,62 @@
     }));
   }
 
+  function enableAll(): void {
+    settings.update((s) => ({
+      ...s,
+      enabledVariants: {
+        plain: true,
+        multiOctaveA_2: true,
+        multiOctaveA_3: true,
+        multiOctaveB_2: true,
+        consecutive_3: true,
+        consecutive_4: true,
+        mirror_3: true,
+        mirror_4: true,
+        intervalWalks: true,
+      },
+      enabledArpeggios: {
+        sizes: {
+          triad: true,
+          seventh: true,
+          ninth: true,
+          eleventh: true,
+          thirteenth: true,
+        },
+        directions: {
+          allUp: true,
+          upDown: true,
+          downUp: true,
+          zigzag: true,
+        },
+      },
+      enabledAgility: { bigX: true, spider: true },
+      enabledScales: (Object.keys(SCALES) as ScaleId[]).reduce(
+        (acc, id) => {
+          acc[id] = true;
+          return acc;
+        },
+        {} as Record<ScaleId, boolean>,
+      ),
+      enabledKeys: KEYS.map((k) => k.id),
+      enabledHandPositions: ['front', 'mid', 'back'],
+      includeOpenStringVariants: true,
+    }));
+  }
+
+  function resetToDefaults(): void {
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(
+        'Reset all settings to defaults? This will not change your bass tuning.',
+      )
+    ) {
+      return;
+    }
+    const defaults = defaultSettings();
+    settings.update((s) => ({ ...defaults, tuningId: s.tuningId }));
+  }
+
   function setMetro<K extends keyof typeof $settings.metronome>(
     k: K,
     v: (typeof $settings.metronome)[K],
@@ -211,6 +267,11 @@
   </header>
 
   <div class="body">
+    <div class="bulk-actions">
+      <button class="bulk-btn" onclick={enableAll} type="button">Enable all</button>
+      <button class="bulk-btn" onclick={resetToDefaults} type="button">Reset to defaults</button>
+    </div>
+
     <section>
       <h3>Bass</h3>
       <div class="radio-group">
@@ -850,5 +911,25 @@
   .bulk-section-btn:hover {
     background: var(--border);
     color: var(--text);
+  }
+  .bulk-actions {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .bulk-btn {
+    background: var(--accent);
+    color: var(--accent-text-on);
+    border: 0;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .bulk-btn:hover {
+    filter: brightness(1.1);
   }
 </style>
