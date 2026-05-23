@@ -102,11 +102,10 @@ export function paramsFromKey(key: string): ExerciseParams | null {
       if (!Number.isFinite(interval)) return null;
       variant = { kind: 'intervalWalk', interval, intervalDir };
     } else if (kind === 'arpeggio') {
-      // rest format: "<size>:<direction>", e.g. "3:allUp"
-      const colon2 = rest.indexOf(':');
-      if (colon2 < 0) return null;
-      const sizeStr = rest.slice(0, colon2);
-      const dirStr = rest.slice(colon2 + 1);
+      // rest format: "<size>:<direction>" (legacy) or "<size>:<direction>:<inversion>"
+      const parts = rest.split(':');
+      if (parts.length !== 2 && parts.length !== 3) return null;
+      const [sizeStr, dirStr, invStr] = parts;
       const size = Number(sizeStr);
       if (![3, 4, 5, 6, 7].includes(size)) return null;
       if (
@@ -117,11 +116,17 @@ export function paramsFromKey(key: string): ExerciseParams | null {
       ) {
         return null;
       }
+      let inversion = 0;
+      if (parts.length === 3) {
+        inversion = Number(invStr);
+        if (!Number.isInteger(inversion) || inversion < 0 || inversion > 6) return null;
+        if (inversion >= size) return null;  // invalid combo
+      }
       variant = {
         kind: 'arpeggioCycle',
         size: size as 3 | 4 | 5 | 6 | 7,
         direction: dirStr as 'allUp' | 'upDown' | 'downUp' | 'zigzag',
-        inversion: 0,  // TODO Task 8 will parse from URL
+        inversion,
       };
     } else if (kind === 'agility') {
       // rest format: "<subkind>:<index>:<dir>:<spelling>"
@@ -206,7 +211,7 @@ export function paramsKey(p: ExerciseParams): string {
       variantKey = `walk:${p.variant.intervalDir === 'up' ? '+' : '-'}${p.variant.interval}`;
       break;
     case 'arpeggioCycle':
-      variantKey = `arpeggio:${p.variant.size}:${p.variant.direction}`;
+      variantKey = `arpeggio:${p.variant.size}:${p.variant.direction}:${p.variant.inversion}`;
       break;
     case 'bigX':
       variantKey = `agility:bigX:${p.variant.startString}:${

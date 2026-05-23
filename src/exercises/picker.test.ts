@@ -974,3 +974,96 @@ describe('generateUniverse — arpeggio inversions', () => {
     }
   });
 });
+
+describe('paramsKey / paramsFromKey — arpeggio inversion round-trip', () => {
+  function arpsOnly(): Settings {
+    const empty = (val: boolean) => ({
+      plain: val, multiOctaveA_2: val, multiOctaveA_3: val, multiOctaveB_2: val,
+      consecutive_3: val, consecutive_4: val, mirror_3: val, mirror_4: val,
+      intervalWalks: val,
+    });
+    return {
+      ...baseSettings,
+      enabledVariants: empty(false),
+      enabledArpeggios: {
+        sizes: { triad: true, seventh: true, ninth: false, eleventh: false, thirteenth: false },
+        directions: { allUp: true, upDown: false, downUp: false, zigzag: false },
+      },
+      enabledAgility: { bigX: false, spider: false },
+      enabledScales: { major: true } as Settings['enabledScales'],
+      enabledKeys: ['C'],
+      enabledHandPositions: ['front'],
+      enabledArpeggioInversions: {
+        root: true, first: true, second: true, third: true,
+        fourth: false, fifth: false, sixth: false,
+      },
+    };
+  }
+
+  test('arpeggio:3:allUp:0 round-trips', () => {
+    const universe = generateUniverse(arpsOnly());
+    const target = universe.find(
+      (p) => p.variant.kind === 'arpeggioCycle' && p.variant.size === 3 && p.variant.inversion === 0,
+    );
+    expect(target).toBeDefined();
+    const key = paramsKey(target!);
+    expect(key).toContain('arpeggio:3:allUp:0');
+    const restored = paramsFromKey(key);
+    expect(restored).not.toBeNull();
+    expect(restored!.variant.kind).toBe('arpeggioCycle');
+    if (restored!.variant.kind === 'arpeggioCycle') {
+      expect(restored!.variant.inversion).toBe(0);
+    }
+  });
+
+  test('arpeggio:3:allUp:2 round-trips (2nd inv triad)', () => {
+    const universe = generateUniverse(arpsOnly());
+    const target = universe.find(
+      (p) => p.variant.kind === 'arpeggioCycle' && p.variant.size === 3 && p.variant.inversion === 2,
+    );
+    expect(target).toBeDefined();
+    const key = paramsKey(target!);
+    expect(key).toContain('arpeggio:3:allUp:2');
+    const restored = paramsFromKey(key);
+    if (restored!.variant.kind === 'arpeggioCycle') {
+      expect(restored!.variant.inversion).toBe(2);
+    }
+  });
+
+  test('arpeggio:4:allUp:3 round-trips (3rd inv 7th)', () => {
+    const universe = generateUniverse(arpsOnly());
+    const target = universe.find(
+      (p) => p.variant.kind === 'arpeggioCycle' && p.variant.size === 4 && p.variant.inversion === 3,
+    );
+    expect(target).toBeDefined();
+    const key = paramsKey(target!);
+    expect(key).toContain('arpeggio:4:allUp:3');
+  });
+
+  test('legacy 3-segment arpeggio URL (no inversion) defaults to 0', () => {
+    // Hand-construct a legacy-style URL. Note: the rhythm work added a
+    // rhythm segment between variant and openTag — so the legacy hash
+    // (pre-inversion era) has 7 segments total. This test exercises the
+    // 3-segment arpeggio variant slug (arpeggio:size:direction) within
+    // a 7-segment full URL.
+    const legacyKey = 'fourStringEADG|Major|C|front|arpeggio:3:allUp|eighth|fretted';
+    const restored = paramsFromKey(legacyKey);
+    expect(restored).not.toBeNull();
+    expect(restored!.variant.kind).toBe('arpeggioCycle');
+    if (restored!.variant.kind === 'arpeggioCycle') {
+      expect(restored!.variant.inversion).toBe(0);
+    }
+  });
+
+  test('invalid inversion (>= size) rejected: arpeggio:3:allUp:3', () => {
+    const malformedKey = 'fourStringEADG|Major|C|front|arpeggio:3:allUp:3|eighth|fretted';
+    const restored = paramsFromKey(malformedKey);
+    expect(restored).toBeNull();
+  });
+
+  test('out-of-range inversion rejected: arpeggio:3:allUp:9', () => {
+    const malformedKey = 'fourStringEADG|Major|C|front|arpeggio:3:allUp:9|eighth|fretted';
+    const restored = paramsFromKey(malformedKey);
+    expect(restored).toBeNull();
+  });
+});
