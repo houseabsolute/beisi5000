@@ -167,6 +167,30 @@
     }));
   }
 
+  function toggleRhythm(key: keyof typeof $settings.enabledRhythms) {
+    settings.update((s) => ({
+      ...s,
+      enabledRhythms: {
+        ...s.enabledRhythms,
+        [key]: !s.enabledRhythms[key],
+      },
+    }));
+  }
+
+  function setAllRhythms(enabled: boolean) {
+    settings.update((s) => ({
+      ...s,
+      enabledRhythms: {
+        quarter: enabled,
+        eighth: enabled,
+        triplet: enabled,
+        '8ss': enabled,
+        's8s': enabled,
+        'ss8': enabled,
+      },
+    }));
+  }
+
   function setAllKeys(enabled: boolean): void {
     settings.update((s) => ({
       ...s,
@@ -194,6 +218,7 @@
     setAllAgility(true);
     setAllKeys(true);
     setAllScales(true);
+    setAllRhythms(true);
     // Open-string variants — not a multi-toggle section, but
     // semantically part of "enable everything".
     settings.update((s) => ({ ...s, includeOpenStringVariants: true }));
@@ -491,6 +516,65 @@
           onchange={() => toggleAgility('spider')}
         />
         Spider — two-string crawl
+      </label>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h3>Rhythms</h3>
+        <div class="bulk-section">
+          <button class="bulk-section-btn" onclick={() => setAllRhythms(true)} type="button">All</button>
+          <button class="bulk-section-btn" onclick={() => setAllRhythms(false)} type="button">None</button>
+        </div>
+      </div>
+      <p class="hint">Each enabled rhythm is a separate exercise variation. Hand-agility drills always use eighth notes.</p>
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          checked={$settings.enabledRhythms.quarter}
+          onchange={() => toggleRhythm('quarter')}
+        />
+        ♩ Quarter notes
+      </label>
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          checked={$settings.enabledRhythms.eighth}
+          onchange={() => toggleRhythm('eighth')}
+        />
+        ♫ Eighth notes
+      </label>
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          checked={$settings.enabledRhythms.triplet}
+          onchange={() => toggleRhythm('triplet')}
+        />
+        ♫₃ Eighth-note triplets
+      </label>
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          checked={$settings.enabledRhythms['8ss']}
+          onchange={() => toggleRhythm('8ss')}
+        />
+        ♪♬ Eighth + two sixteenths (8ss)
+      </label>
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          checked={$settings.enabledRhythms['s8s']}
+          onchange={() => toggleRhythm('s8s')}
+        />
+        ♬♪♬ Sixteenth + eighth + sixteenth (s8s)
+      </label>
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          checked={$settings.enabledRhythms['ss8']}
+          onchange={() => toggleRhythm('ss8')}
+        />
+        ♬♬♪ Two sixteenths + eighth (ss8)
       </label>
     </section>
 
