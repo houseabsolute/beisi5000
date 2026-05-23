@@ -47,6 +47,7 @@
     variantFamily: VariantFamily;
     openStrings: OpenChoice;
     rhythm: Rhythm | 'any';
+    inversion: number | 'any';
   }
 
   const FILTERS_STORAGE_KEY = 'bass-practice:browse-filters:v1';
@@ -60,6 +61,7 @@
       variantFamily: 'any',
       openStrings: 'either',
       rhythm: 'any',
+      inversion: 'any',
     };
     if (typeof localStorage === 'undefined') return defaults;
     try {
@@ -80,6 +82,7 @@
   let variantFamily = $state<VariantFamily>(initial.variantFamily);
   let openStrings = $state<OpenChoice>(initial.openStrings);
   let rhythm = $state<Rhythm | 'any'>(initial.rhythm);
+  let inversion = $state<number | 'any'>(initial.inversion);
 
   // Persist on every change.
   $effect(() => {
@@ -91,6 +94,7 @@
       variantFamily,
       openStrings,
       rhythm,
+      inversion,
     };
     if (typeof localStorage !== 'undefined') {
       try {
@@ -139,6 +143,8 @@
   const effectiveHand = $derived(handDisabled ? 'any' : hand);
   const rhythmDisabled = $derived(variantFamily === 'agility');
   const effectiveRhythm = $derived(rhythmDisabled ? 'any' : rhythm);
+  const inversionDisabled = $derived(variantFamily !== 'arpeggios');
+  const effectiveInversion = $derived(inversionDisabled ? 'any' : inversion);
 
   const results = $derived.by(() =>
     fullUniverse.filter((p) => {
@@ -155,6 +161,10 @@
         return false;
       if (effectiveHand !== 'any' && p.handPosition !== effectiveHand) return false;
       if (effectiveRhythm !== 'any' && p.rhythm !== effectiveRhythm) return false;
+      if (
+        effectiveInversion !== 'any' &&
+        (p.variant.kind !== 'arpeggioCycle' || p.variant.inversion !== effectiveInversion)
+      ) return false;
       if (variantFamily !== 'any' && !matchVariantFamily(p.variant, variantFamily))
         return false;
       if (openStrings === 'open' && !p.useOpenStrings) return false;
@@ -207,6 +217,7 @@
     variantFamily = 'any';
     openStrings = 'either';
     rhythm = 'any';
+    inversion = 'any';
   }
 </script>
 
@@ -264,6 +275,23 @@
         <button class="chip-toggle" class:on={rhythm === '8ss'} onclick={() => (rhythm = '8ss')} type="button">8ss</button>
         <button class="chip-toggle" class:on={rhythm === 's8s'} onclick={() => (rhythm = 's8s')} type="button">s8s</button>
         <button class="chip-toggle" class:on={rhythm === 'ss8'} onclick={() => (rhythm = 'ss8')} type="button">ss8</button>
+      </div>
+    </section>
+
+    <section class:disabled={inversionDisabled} aria-disabled={inversionDisabled} role="group">
+      <span class="lbl">Inversion</span>
+      {#if inversionDisabled}
+        <span class="hint">Only applies to arpeggios</span>
+      {/if}
+      <div class="chips">
+        <button class="chip-toggle" class:on={inversion === 'any'} onclick={() => (inversion = 'any')} type="button">Any</button>
+        <button class="chip-toggle" class:on={inversion === 0} onclick={() => (inversion = 0)} type="button">Root</button>
+        <button class="chip-toggle" class:on={inversion === 1} onclick={() => (inversion = 1)} type="button">1st</button>
+        <button class="chip-toggle" class:on={inversion === 2} onclick={() => (inversion = 2)} type="button">2nd</button>
+        <button class="chip-toggle" class:on={inversion === 3} onclick={() => (inversion = 3)} type="button">3rd</button>
+        <button class="chip-toggle" class:on={inversion === 4} onclick={() => (inversion = 4)} type="button">4th</button>
+        <button class="chip-toggle" class:on={inversion === 5} onclick={() => (inversion = 5)} type="button">5th</button>
+        <button class="chip-toggle" class:on={inversion === 6} onclick={() => (inversion = 6)} type="button">6th</button>
       </div>
     </section>
 
