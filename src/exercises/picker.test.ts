@@ -1025,6 +1025,7 @@ describe('paramsKey / paramsFromKey — arpeggio inversion round-trip', () => {
     const key = paramsKey(target!);
     expect(key).toContain('arpeggio:3:allUp:2');
     const restored = paramsFromKey(key);
+    expect(restored).not.toBeNull();
     if (restored!.variant.kind === 'arpeggioCycle') {
       expect(restored!.variant.inversion).toBe(2);
     }
