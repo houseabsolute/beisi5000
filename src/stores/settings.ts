@@ -46,6 +46,16 @@ export interface RhythmToggles {
   'ss8': boolean;
 }
 
+export interface ArpeggioInversionToggles {
+  root: boolean;
+  first: boolean;
+  second: boolean;
+  third: boolean;
+  fourth: boolean;
+  fifth: boolean;
+  sixth: boolean;
+}
+
 export interface MetronomeSettings {
   tempoMin: number;
   tempoMax: number;
@@ -72,6 +82,7 @@ export interface Settings {
   enabledArpeggios: ArpeggioToggles;
   enabledAgility: AgilityToggles;
   enabledRhythms: RhythmToggles;
+  enabledArpeggioInversions: ArpeggioInversionToggles;
   includeOpenStringVariants: boolean;
   /** Independent toggles for each of the three display views. */
   displayToggles: {
@@ -98,7 +109,7 @@ export interface Settings {
   recentExclusionCount: number;
 }
 
-const STORAGE_KEY = 'bass-practice:settings:v7';
+const STORAGE_KEY = 'bass-practice:settings:v8';
 
 export function defaultSettings(): Settings {
   const enabledScales = Object.keys(SCALES).reduce(
@@ -153,6 +164,15 @@ export function defaultSettings(): Settings {
       's8s': false,
       'ss8': false,
     },
+    enabledArpeggioInversions: {
+      root: true,
+      first: false,
+      second: false,
+      third: false,
+      fourth: false,
+      fifth: false,
+      sixth: false,
+    },
     includeOpenStringVariants: true,
     displayToggles: {
       notation: true,
@@ -206,6 +226,10 @@ function loadSettings(): Settings {
       enabledRhythms: {
         ...defaults.enabledRhythms,
         ...parsed.enabledRhythms,
+      },
+      enabledArpeggioInversions: {
+        ...defaults.enabledArpeggioInversions,
+        ...parsed.enabledArpeggioInversions,
       },
       displayToggles: {
         ...defaults.displayToggles,
