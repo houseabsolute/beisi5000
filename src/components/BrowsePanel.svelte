@@ -18,7 +18,7 @@
     paramsKey,
   } from '../exercises/picker';
   import { formatDisplayName } from '../exercises/scale-generator';
-  import type { ExerciseParams, Variant } from '../exercises/types';
+  import type { ExerciseParams, Variant, Rhythm } from '../exercises/types';
 
   interface Props {
     open: boolean;
@@ -46,6 +46,7 @@
     hand: HandPosition | 'any';
     variantFamily: VariantFamily;
     openStrings: OpenChoice;
+    rhythm: Rhythm | 'any';
   }
 
   const FILTERS_STORAGE_KEY = 'bass-practice:browse-filters:v1';
@@ -58,6 +59,7 @@
       hand: 'any',
       variantFamily: 'any',
       openStrings: 'either',
+      rhythm: 'any',
     };
     if (typeof localStorage === 'undefined') return defaults;
     try {
@@ -77,6 +79,7 @@
   let hand = $state<HandPosition | 'any'>(initial.hand);
   let variantFamily = $state<VariantFamily>(initial.variantFamily);
   let openStrings = $state<OpenChoice>(initial.openStrings);
+  let rhythm = $state<Rhythm | 'any'>(initial.rhythm);
 
   // Persist on every change.
   $effect(() => {
@@ -87,6 +90,7 @@
       hand,
       variantFamily,
       openStrings,
+      rhythm,
     };
     if (typeof localStorage !== 'undefined') {
       try {
@@ -133,6 +137,8 @@
   const effectiveScaleId = $derived(scaleDisabled ? 'any' : scaleId);
   const effectiveKeyId = $derived(keyDisabled ? 'any' : keyId);
   const effectiveHand = $derived(handDisabled ? 'any' : hand);
+  const rhythmDisabled = $derived(variantFamily === 'agility');
+  const effectiveRhythm = $derived(rhythmDisabled ? 'any' : rhythm);
 
   const results = $derived.by(() =>
     fullUniverse.filter((p) => {
@@ -148,6 +154,7 @@
       )
         return false;
       if (effectiveHand !== 'any' && p.handPosition !== effectiveHand) return false;
+      if (effectiveRhythm !== 'any' && p.rhythm !== effectiveRhythm) return false;
       if (variantFamily !== 'any' && !matchVariantFamily(p.variant, variantFamily))
         return false;
       if (openStrings === 'open' && !p.useOpenStrings) return false;
@@ -199,6 +206,7 @@
     hand = 'any';
     variantFamily = 'any';
     openStrings = 'either';
+    rhythm = 'any';
   }
 </script>
 
@@ -240,6 +248,22 @@
             type="button">{v.label}</button
           >
         {/each}
+      </div>
+    </section>
+
+    <section class:disabled={rhythmDisabled} aria-disabled={rhythmDisabled} role="group">
+      <span class="lbl">Rhythm</span>
+      {#if rhythmDisabled}
+        <span class="hint">Not applicable for {variantFamily}</span>
+      {/if}
+      <div class="chips">
+        <button class="chip-toggle" class:on={rhythm === 'any'} onclick={() => (rhythm = 'any')} type="button">Any</button>
+        <button class="chip-toggle" class:on={rhythm === 'quarter'} onclick={() => (rhythm = 'quarter')} type="button">♩ Quarter</button>
+        <button class="chip-toggle" class:on={rhythm === 'eighth'} onclick={() => (rhythm = 'eighth')} type="button">♫ Eighth</button>
+        <button class="chip-toggle" class:on={rhythm === 'triplet'} onclick={() => (rhythm = 'triplet')} type="button">♫₃ Triplet</button>
+        <button class="chip-toggle" class:on={rhythm === '8ss'} onclick={() => (rhythm = '8ss')} type="button">8ss</button>
+        <button class="chip-toggle" class:on={rhythm === 's8s'} onclick={() => (rhythm = 's8s')} type="button">s8s</button>
+        <button class="chip-toggle" class:on={rhythm === 'ss8'} onclick={() => (rhythm = 'ss8')} type="button">ss8</button>
       </div>
     </section>
 
