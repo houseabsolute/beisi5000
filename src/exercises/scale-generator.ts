@@ -15,6 +15,7 @@ import {
 import { emitAlphaTex } from '../notation/alphatex-emitter';
 import { multiOctaveAMidi, multiOctaveBMidi } from './multi-octave';
 import { bigXSequence, spiderSequence } from './agility';
+import { applyRhythm } from './rhythm';
 import {
   arpeggioCycleMidi,
   intervalWalkAscMidi,
@@ -1288,10 +1289,12 @@ export function generateExercise(params: ExerciseParams): Exercise {
   // Agility drills emit FretboardNote[] directly — no scale/key/hand-position
   // lookup needed. Short-circuit before pickStartingPosition.
   if (variant.kind === 'bigX' || variant.kind === 'spider') {
-    const sequence =
+    let sequence =
       variant.kind === 'bigX'
         ? bigXSequence(tuning, variant.startString, variant.direction)
         : spiderSequence(tuning, variant.lowerString, variant.direction);
+    // Agility drills opt out of the rhythm dimension — always eighth.
+    sequence = applyRhythm(sequence, 'eighth');
     const displayName = formatDisplayName(params);
     const alphaTex = emitAlphaTex(sequence, tuning, {
       title: displayName,
@@ -1434,6 +1437,11 @@ export function generateExercise(params: ExerciseParams): Exercise {
       `Variant ${(variant as { kind: string }).kind} not yet implemented`,
     );
   }
+
+  // Apply rhythm to the variant-generated sequence. Defaults to 'eighth'
+  // (the historical default) when the caller didn't specify, so existing
+  // test fixtures and scripts continue to work without churn.
+  sequence = applyRhythm(sequence, params.rhythm ?? 'eighth');
 
   const displayName = formatDisplayName(params);
   const alphaTex = emitAlphaTex(sequence, tuning, {

@@ -900,3 +900,94 @@ describe('formatDisplayName — agility', () => {
     expect(name).not.toContain('C ');
   });
 });
+
+describe('generateExercise — rhythm application', () => {
+  function plainParams(
+    rhythm?: 'quarter' | 'eighth' | 'triplet' | '8ss' | 's8s' | 'ss8',
+  ) {
+    const key = KEYS_BY_ID.C;
+    return {
+      scale: SCALES.major,
+      rootPc: key.pc,
+      rootName: key.name,
+      variant: { kind: 'plain' as const },
+      scaleDirection: 'updown' as const,
+      handPosition: 'front' as const,
+      tuning: TUNINGS.fourStringEADG,
+      keySignature: keySignatureFor(key, SCALES.major),
+      keySignatureLabel: keySignatureLabelFor(key, SCALES.major),
+      spelling: spellingMap(key, SCALES.major),
+      rhythm,
+    };
+  }
+
+  test('rhythm=quarter sets durationDenominator=4 on every note', () => {
+    const ex = generateExercise(plainParams('quarter'));
+    for (const n of ex.sequence) {
+      expect(n.durationDenominator).toBe(4);
+      expect(n.tuplet).toBeUndefined();
+    }
+  });
+
+  test('rhythm=eighth sets durationDenominator=8 on every note', () => {
+    const ex = generateExercise(plainParams('eighth'));
+    for (const n of ex.sequence) {
+      expect(n.durationDenominator).toBe(8);
+    }
+  });
+
+  test('rhythm=triplet sets tuplet=3 on every note', () => {
+    const ex = generateExercise(plainParams('triplet'));
+    for (const n of ex.sequence) {
+      expect(n.durationDenominator).toBe(8);
+      expect(n.tuplet).toBe(3);
+    }
+  });
+
+  test('rhythm undefined defaults to eighth (historical default)', () => {
+    const ex = generateExercise(plainParams(undefined));
+    for (const n of ex.sequence) {
+      expect(n.durationDenominator).toBe(8);
+    }
+  });
+
+  test('agility bigX always uses eighth regardless of rhythm param', () => {
+    const key = KEYS_BY_ID.C;
+    const ex = generateExercise({
+      scale: SCALES.chromatic,
+      rootPc: key.pc,
+      rootName: 'C',
+      variant: { kind: 'bigX', startString: 0, direction: 'forward', spelling: 'sharp' },
+      scaleDirection: 'updown',
+      handPosition: 'front',
+      tuning: TUNINGS.fourStringEADG,
+      keySignature: 0,
+      keySignatureLabel: 'C',
+      rhythm: 'quarter',  // ← user says quarter, but agility forces eighth
+    });
+    for (const n of ex.sequence) {
+      expect(n.durationDenominator).toBe(8);
+      expect(n.tuplet).toBeUndefined();
+    }
+  });
+
+  test('agility spider always uses eighth regardless of rhythm param', () => {
+    const key = KEYS_BY_ID.C;
+    const ex = generateExercise({
+      scale: SCALES.chromatic,
+      rootPc: key.pc,
+      rootName: 'C',
+      variant: { kind: 'spider', lowerString: 1, direction: 'forward', spelling: 'flat' },
+      scaleDirection: 'updown',
+      handPosition: 'front',
+      tuning: TUNINGS.fourStringEADG,
+      keySignature: 0,
+      keySignatureLabel: 'C',
+      rhythm: 'triplet',
+    });
+    for (const n of ex.sequence) {
+      expect(n.durationDenominator).toBe(8);
+      expect(n.tuplet).toBeUndefined();
+    }
+  });
+});
