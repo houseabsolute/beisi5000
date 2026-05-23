@@ -1017,8 +1017,8 @@ describe('formatDisplayName — rhythm glyph', () => {
   test('eighth rhythm appends ♫ glyph', () => {
     expect(formatDisplayName(plainParams('eighth'))).toContain('♫');
   });
-  test('triplet rhythm appends ♫₃ glyph', () => {
-    expect(formatDisplayName(plainParams('triplet'))).toContain('♫₃');
+  test('triplet rhythm appends ♪₃ glyph', () => {
+    expect(formatDisplayName(plainParams('triplet'))).toContain('♪₃');
   });
   test('8ss appends "(8ss)" label', () => {
     expect(formatDisplayName(plainParams('8ss'))).toContain('(8ss)');

@@ -550,7 +550,7 @@
           checked={$settings.enabledRhythms.triplet}
           onchange={() => toggleRhythm('triplet')}
         />
-        ♫₃ Eighth-note triplets
+        ♪₃ Eighth-note triplets
       </label>
       <label class="checkbox">
         <input

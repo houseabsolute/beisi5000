@@ -1458,7 +1458,7 @@ function rhythmGlyph(rhythm: Rhythm): string {
   switch (rhythm) {
     case 'quarter':  return '♩';
     case 'eighth':   return '♫';
-    case 'triplet':  return '♫₃';
+    case 'triplet':  return '♪₃';
     case '8ss':      return '(8ss)';
     case 's8s':      return '(s8s)';
     case 'ss8':      return '(ss8)';

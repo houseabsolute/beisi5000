@@ -260,7 +260,7 @@
         <button class="chip-toggle" class:on={rhythm === 'any'} onclick={() => (rhythm = 'any')} type="button">Any</button>
         <button class="chip-toggle" class:on={rhythm === 'quarter'} onclick={() => (rhythm = 'quarter')} type="button">♩ Quarter</button>
         <button class="chip-toggle" class:on={rhythm === 'eighth'} onclick={() => (rhythm = 'eighth')} type="button">♫ Eighth</button>
-        <button class="chip-toggle" class:on={rhythm === 'triplet'} onclick={() => (rhythm = 'triplet')} type="button">♫₃ Triplet</button>
+        <button class="chip-toggle" class:on={rhythm === 'triplet'} onclick={() => (rhythm = 'triplet')} type="button">♪₃ Triplet</button>
         <button class="chip-toggle" class:on={rhythm === '8ss'} onclick={() => (rhythm = '8ss')} type="button">8ss</button>
         <button class="chip-toggle" class:on={rhythm === 's8s'} onclick={() => (rhythm = 's8s')} type="button">s8s</button>
         <button class="chip-toggle" class:on={rhythm === 'ss8'} onclick={() => (rhythm = 'ss8')} type="button">ss8</button>
