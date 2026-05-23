@@ -8,6 +8,7 @@ import {
   arpeggioCycleApex,
   startConstraintsForVariant,
   formatDisplayName,
+  describeVariant,
 } from './scale-generator';
 import { SCALES } from '../theory/scales';
 import { TUNINGS, type Tuning } from '../theory/tunings';
@@ -1131,5 +1132,41 @@ describe('generateExercise — arpeggioCycle with inversion', () => {
     const ex = generateExercise(arpParams(2, 'upDown'));
     const midis = ex.sequence.slice(0, 3).map((n) => n.midi);
     expect(midis).toEqual([36, 40, 43]);
+  });
+});
+
+describe('describeVariant — arpeggio inversion suffix', () => {
+  function arp(size: 3 | 4 | 5 | 6 | 7, dir: 'allUp' | 'upDown', inversion: number) {
+    return describeVariant(
+      { kind: 'arpeggioCycle', size, direction: dir, inversion },
+      SCALES.major,
+      TUNINGS.fourStringEADG,
+    );
+  }
+
+  test('root position has NO inversion suffix', () => {
+    expect(arp(3, 'allUp', 0)).toBe('Triad cycle ↑↑');
+  });
+
+  test('1st inv triad → "Triad cycle ↑↑ 1st inv"', () => {
+    expect(arp(3, 'allUp', 1)).toBe('Triad cycle ↑↑ 1st inv');
+  });
+
+  test('2nd inv 7th → "7th cycle ↑↑ 2nd inv"', () => {
+    expect(arp(4, 'allUp', 2)).toBe('7th cycle ↑↑ 2nd inv');
+  });
+
+  test('3rd inv 9th → "9th cycle ↑↑ 3rd inv"', () => {
+    expect(arp(5, 'allUp', 3)).toBe('9th cycle ↑↑ 3rd inv');
+  });
+
+  test('6th inv 13th → "13th cycle ↑↑ 6th inv"', () => {
+    expect(arp(7, 'allUp', 6)).toBe('13th cycle ↑↑ 6th inv');
+  });
+
+  test('non-allUp ignores inversion in display (always root, no suffix)', () => {
+    // Even though variant.inversion is 0 here (per the spec rule),
+    // verify the format string has no inv suffix for upDown.
+    expect(arp(3, 'upDown', 0)).toBe('Triad cycle ↑↓');
   });
 });

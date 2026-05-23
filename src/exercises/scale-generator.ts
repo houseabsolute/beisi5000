@@ -1541,7 +1541,12 @@ export function describeVariant(v: ExerciseParams['variant'], scale: Scale, tuni
         downUp: '↓↑',
         zigzag: '↕',
       };
-      return `${sizeLabels[v.size]} cycle ${dirSymbols[v.direction]}`;
+      // Inversion suffix only appears when > 0 (root pos = no extra label).
+      // Non-allUp directions always have inversion=0 per the spec, so they
+      // never show a suffix.
+      const invLabels = ['root', '1st', '2nd', '3rd', '4th', '5th', '6th'];
+      const invSuffix = v.inversion > 0 ? ` ${invLabels[v.inversion]} inv` : '';
+      return `${sizeLabels[v.size]} cycle ${dirSymbols[v.direction]}${invSuffix}`;
     }
     case 'bigX': {
       const names = tuning.openNoteNames
