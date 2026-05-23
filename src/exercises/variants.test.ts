@@ -1,12 +1,13 @@
 import { describe, test, expect } from 'vitest';
 import {
-  consecutiveAscMidi,
-  mirrorAscMidi,
-  intervalWalkAscMidi,
-  variantSequenceMidi,
-  arpUp,
   arpDown,
   arpeggioCycleMidi,
+  arpUp,
+  consecutiveAscMidi,
+  intervalWalkAscMidi,
+  invertedArpUp,
+  mirrorAscMidi,
+  variantSequenceMidi,
 } from './variants';
 import { SCALES } from '../theory/scales';
 import { midiOf } from '../theory/notes';
@@ -360,8 +361,6 @@ describe('arpeggioCycleMidi — zigzag (9th-chord, size > 3 case)', () => {
     }
   });
 });
-
-import { invertedArpUp } from './variants';
 
 describe('invertedArpUp', () => {
   const cMaj = SCALES.major;

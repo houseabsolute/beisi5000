@@ -141,10 +141,10 @@ export function invertedArpUp(
   size: number,
   inversion: number,
 ): number[] {
-  const SCALE_LEN = 7;
+  const scaleLen = scale.intervals.length;
   const degrees: number[] = [];
   for (let pos = 0; pos < size; pos++) {
-    const degree = d + 2 * pos + (pos < inversion ? SCALE_LEN : 0);
+    const degree = d + 2 * pos + (pos < inversion ? scaleLen : 0);
     degrees.push(degree);
   }
   degrees.sort((a, b) => a - b);
