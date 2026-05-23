@@ -1087,3 +1087,49 @@ describe('formatDisplayName — rhythm glyph', () => {
     expect(name).not.toContain('♩');
   });
 });
+
+describe('generateExercise — arpeggioCycle with inversion', () => {
+  function arpParams(
+    inversion: number,
+    direction: 'allUp' | 'upDown' | 'downUp' | 'zigzag' = 'allUp',
+  ) {
+    const key = KEYS_BY_ID.C;
+    return {
+      scale: SCALES.major,
+      rootPc: key.pc,
+      rootName: key.name,
+      variant: { kind: 'arpeggioCycle' as const, size: 3 as const, direction, inversion },
+      scaleDirection: 'updown' as const,
+      handPosition: 'front' as const,
+      tuning: TUNINGS.fourStringEADG,
+      keySignature: keySignatureFor(key, SCALES.major),
+      keySignatureLabel: keySignatureLabelFor(key, SCALES.major),
+      spelling: spellingMap(key, SCALES.major),
+    };
+  }
+
+  test('inversion 0 allUp first arp = [C, E, G] (root position)', () => {
+    const ex = generateExercise(arpParams(0));
+    // Each FretboardNote has midi; first 3 = C2, E2, G2
+    const midis = ex.sequence.slice(0, 3).map((n) => n.midi);
+    expect(midis).toEqual([36, 40, 43]);
+  });
+
+  test('inversion 1 allUp first arp = [E, G, C(8va)]', () => {
+    const ex = generateExercise(arpParams(1));
+    const midis = ex.sequence.slice(0, 3).map((n) => n.midi);
+    expect(midis).toEqual([40, 43, 48]);
+  });
+
+  test('inversion 2 allUp first arp = [G, C(8va), E(8va)]', () => {
+    const ex = generateExercise(arpParams(2));
+    const midis = ex.sequence.slice(0, 3).map((n) => n.midi);
+    expect(midis).toEqual([43, 48, 52]);
+  });
+
+  test('upDown direction with inversion=2 — inversion is IGNORED, first arp = [C, E, G] (root)', () => {
+    const ex = generateExercise(arpParams(2, 'upDown'));
+    const midis = ex.sequence.slice(0, 3).map((n) => n.midi);
+    expect(midis).toEqual([36, 40, 43]);
+  });
+});

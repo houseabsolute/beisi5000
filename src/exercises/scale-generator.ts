@@ -1432,7 +1432,7 @@ export function generateExercise(params: ExerciseParams): Exercise {
     // walking variants — apex drifts to high frets, pin lookahead pulls
     // the resolution back to the start position. Open strings are
     // avoided because they sound jumpy in the middle of an arp.
-    const midi = arpeggioCycleMidi(scale, lowRootMidi, variant.size, variant.direction);
+    const midi = arpeggioCycleMidi(scale, lowRootMidi, variant.size, variant.direction, variant.inversion);
     sequence = layOnFretboard(midi, tuning, lowRootPos, handPosition, {
       applyPinLookahead: true,
       avoidOpenStrings: true,
