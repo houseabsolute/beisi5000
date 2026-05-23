@@ -39,9 +39,14 @@ const MAX_FRET = 24;
  */
 export function paramsFromKey(key: string): ExerciseParams | null {
   const parts = key.split('|');
-  if (parts.length !== 6) return null;
-  const [tuningId, scaleName, rootName, handPosition, variantKey, openTag] =
-    parts;
+  if (parts.length !== 6 && parts.length !== 7) return null;
+  const tuningId = parts[0];
+  const scaleName = parts[1];
+  const rootName = parts[2];
+  const handPosition = parts[3];
+  const variantKey = parts[4];
+  const rhythmStr = parts.length === 7 ? parts[5] : 'eighth';
+  const openTag = parts[parts.length - 1];
   const tuning = TUNINGS[tuningId as keyof typeof TUNINGS];
   if (!tuning) return null;
   const scaleEntry = Object.values(SCALES).find((s) => s.name === scaleName);
@@ -55,6 +60,17 @@ export function paramsFromKey(key: string): ExerciseParams | null {
   ) {
     return null;
   }
+  if (
+    rhythmStr !== 'quarter' &&
+    rhythmStr !== 'eighth' &&
+    rhythmStr !== 'triplet' &&
+    rhythmStr !== '8ss' &&
+    rhythmStr !== 's8s' &&
+    rhythmStr !== 'ss8'
+  ) {
+    return null;
+  }
+  const rhythm: Rhythm = rhythmStr;
   let variant: Variant;
   if (variantKey === 'plain') {
     variant = { kind: 'plain' };
@@ -165,6 +181,7 @@ export function paramsFromKey(key: string): ExerciseParams | null {
     keySignature,
     keySignatureLabel,
     spelling: spellingMap(keyEntry, scaleEntry),
+    rhythm,
   };
 }
 
@@ -207,6 +224,7 @@ export function paramsKey(p: ExerciseParams): string {
     p.rootName ?? String(p.rootPc),
     p.handPosition,
     variantKey,
+    p.rhythm ?? 'eighth',
     p.useOpenStrings ? 'open' : 'fretted',
   ].join('|');
 }

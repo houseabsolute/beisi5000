@@ -796,3 +796,104 @@ describe('generateUniverse — rhythm multiplication', () => {
     }
   });
 });
+
+describe('paramsKey / paramsFromKey — rhythm round-trip', () => {
+  function makeAgilitySettings(opts: { bigX: boolean; spider: boolean }) {
+    return {
+      ...baseSettings,
+      enabledVariants: {
+        plain: false, multiOctaveA_2: false, multiOctaveA_3: false,
+        multiOctaveB_2: false, consecutive_3: false, consecutive_4: false,
+        mirror_3: false, mirror_4: false, intervalWalks: false,
+      },
+      enabledArpeggios: {
+        sizes: { triad: false, seventh: false, ninth: false, eleventh: false, thirteenth: false },
+        directions: { allUp: false, upDown: false, downUp: false, zigzag: false },
+      },
+      enabledAgility: opts,
+    } as Settings;
+  }
+
+  test('quarter rhythm round-trips through 7-segment URL', () => {
+    const s: Settings = {
+      ...baseSettings,
+      enabledScales: { major: true } as Settings['enabledScales'],
+      enabledKeys: ['C'],
+      enabledHandPositions: ['front'],
+      enabledArpeggios: {
+        sizes: { triad: false, seventh: false, ninth: false, eleventh: false, thirteenth: false },
+        directions: { allUp: false, upDown: false, downUp: false, zigzag: false },
+      },
+      enabledAgility: { bigX: false, spider: false },
+      enabledRhythms: { quarter: true, eighth: false, triplet: false, '8ss': false, 's8s': false, 'ss8': false },
+    };
+    const universe = generateUniverse(s);
+    const p = universe.find((x) => x.variant.kind === 'plain');
+    expect(p).toBeDefined();
+    expect(p!.rhythm).toBe('quarter');
+    const key = paramsKey(p!);
+    expect(key).toContain('|quarter|');
+    const restored = paramsFromKey(key);
+    expect(restored).not.toBeNull();
+    expect(restored!.rhythm).toBe('quarter');
+  });
+
+  test('triplet rhythm round-trips', () => {
+    const s: Settings = {
+      ...baseSettings,
+      enabledScales: { major: true } as Settings['enabledScales'],
+      enabledKeys: ['C'],
+      enabledHandPositions: ['front'],
+      enabledArpeggios: {
+        sizes: { triad: false, seventh: false, ninth: false, eleventh: false, thirteenth: false },
+        directions: { allUp: false, upDown: false, downUp: false, zigzag: false },
+      },
+      enabledAgility: { bigX: false, spider: false },
+      enabledRhythms: { quarter: false, eighth: false, triplet: true, '8ss': false, 's8s': false, 'ss8': false },
+    };
+    const universe = generateUniverse(s);
+    const p = universe.find((x) => x.variant.kind === 'plain');
+    expect(p!.rhythm).toBe('triplet');
+    const key = paramsKey(p!);
+    expect(key).toContain('|triplet|');
+    expect(paramsFromKey(key)!.rhythm).toBe('triplet');
+  });
+
+  test('8ss rhythm round-trips', () => {
+    const s: Settings = {
+      ...baseSettings,
+      enabledScales: { major: true } as Settings['enabledScales'],
+      enabledKeys: ['C'],
+      enabledHandPositions: ['front'],
+      enabledArpeggios: {
+        sizes: { triad: false, seventh: false, ninth: false, eleventh: false, thirteenth: false },
+        directions: { allUp: false, upDown: false, downUp: false, zigzag: false },
+      },
+      enabledAgility: { bigX: false, spider: false },
+      enabledRhythms: { quarter: false, eighth: false, triplet: false, '8ss': true, 's8s': false, 'ss8': false },
+    };
+    const universe = generateUniverse(s);
+    const p = universe.find((x) => x.variant.kind === 'plain');
+    expect(p!.rhythm).toBe('8ss');
+    const key = paramsKey(p!);
+    expect(key).toContain('|8ss|');
+    expect(paramsFromKey(key)!.rhythm).toBe('8ss');
+  });
+
+  test('legacy 6-segment URL defaults rhythm to eighth', () => {
+    const legacyKey = 'fourStringEADG|Major|C|front|plain|fretted';
+    const restored = paramsFromKey(legacyKey);
+    expect(restored).not.toBeNull();
+    expect(restored!.rhythm).toBe('eighth');
+  });
+
+  test('agility URL encodes rhythm = eighth', () => {
+    const s = makeAgilitySettings({ bigX: true, spider: false });
+    const universe = generateUniverse(s);
+    const p = universe.find((x) => x.variant.kind === 'bigX');
+    expect(p!.rhythm).toBe('eighth');
+    const key = paramsKey(p!);
+    expect(key).toContain('|eighth|');
+    expect(paramsFromKey(key)!.rhythm).toBe('eighth');
+  });
+});
