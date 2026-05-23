@@ -160,6 +160,31 @@
     }));
   }
 
+  function toggleArpInversion(key: keyof typeof $settings.enabledArpeggioInversions) {
+    settings.update((s) => ({
+      ...s,
+      enabledArpeggioInversions: {
+        ...s.enabledArpeggioInversions,
+        [key]: !s.enabledArpeggioInversions[key],
+      },
+    }));
+  }
+
+  function setAllArpInversions(enabled: boolean) {
+    settings.update((s) => ({
+      ...s,
+      enabledArpeggioInversions: {
+        root: enabled,
+        first: enabled,
+        second: enabled,
+        third: enabled,
+        fourth: enabled,
+        fifth: enabled,
+        sixth: enabled,
+      },
+    }));
+  }
+
   function setAllAgility(enabled: boolean): void {
     settings.update((s) => ({
       ...s,
@@ -215,6 +240,7 @@
     setAllHandPositions(true);
     setAllVariants(true);
     setAllArpeggios(true);
+    setAllArpInversions(true);
     setAllAgility(true);
     setAllKeys(true);
     setAllScales(true);
@@ -488,6 +514,51 @@
             onchange={() => toggleArpDirection('zigzag')}
           />
           <span>↕ zigzag</span>
+        </label>
+      </div>
+      <div class="arp-subhead">
+        Inversions
+        <span class="arp-subhint">(All ↑↑ only)</span>
+        <div class="bulk-section">
+          <button class="bulk-section-btn" onclick={() => setAllArpInversions(true)} type="button">All</button>
+          <button class="bulk-section-btn" onclick={() => setAllArpInversions(false)} type="button">None</button>
+        </div>
+      </div>
+      <div class="chips">
+        <label class="chip-toggle">
+          <input type="checkbox" checked={$settings.enabledArpeggioInversions.root}
+            onchange={() => toggleArpInversion('root')} />
+          <span>Root</span>
+        </label>
+        <label class="chip-toggle">
+          <input type="checkbox" checked={$settings.enabledArpeggioInversions.first}
+            onchange={() => toggleArpInversion('first')} />
+          <span>1st</span>
+        </label>
+        <label class="chip-toggle">
+          <input type="checkbox" checked={$settings.enabledArpeggioInversions.second}
+            onchange={() => toggleArpInversion('second')} />
+          <span>2nd</span>
+        </label>
+        <label class="chip-toggle">
+          <input type="checkbox" checked={$settings.enabledArpeggioInversions.third}
+            onchange={() => toggleArpInversion('third')} />
+          <span>3rd</span>
+        </label>
+        <label class="chip-toggle">
+          <input type="checkbox" checked={$settings.enabledArpeggioInversions.fourth}
+            onchange={() => toggleArpInversion('fourth')} />
+          <span>4th</span>
+        </label>
+        <label class="chip-toggle">
+          <input type="checkbox" checked={$settings.enabledArpeggioInversions.fifth}
+            onchange={() => toggleArpInversion('fifth')} />
+          <span>5th</span>
+        </label>
+        <label class="chip-toggle">
+          <input type="checkbox" checked={$settings.enabledArpeggioInversions.sixth}
+            onchange={() => toggleArpInversion('sixth')} />
+          <span>6th</span>
         </label>
       </div>
     </section>
@@ -929,6 +1000,12 @@
     font-size: 12px;
     color: var(--text-dim);
     font-weight: 600;
+  }
+  .arp-subhint {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 400;
+    margin-left: 6px;
   }
   .hint {
     margin: 0 0 10px;
