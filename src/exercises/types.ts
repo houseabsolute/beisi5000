@@ -63,6 +63,13 @@ export interface ExerciseParams {
    * (C natural).
    */
   spelling?: Map<PitchClass, import('../theory/keys').AccidentalKind>;
+  /**
+   * Rhythmic pattern applied to the exercise's notes. When unset,
+   * defaults to 'eighth' inside the generator (the historical default
+   * for the app). The picker always sets this explicitly so URL hashes
+   * round-trip cleanly.
+   */
+  rhythm?: Rhythm;
 }
 
 export interface FretboardNote {
