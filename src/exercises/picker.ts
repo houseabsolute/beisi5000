@@ -9,7 +9,7 @@ import {
   spellingMap,
   isEnharmonicallyRedundant,
 } from '../theory/keys';
-import type { ExerciseParams, Variant } from './types';
+import type { ExerciseParams, Variant, Rhythm } from './types';
 import {
   pickStartingPosition,
   pickStartingPositionForWalkingPairs,
@@ -22,7 +22,7 @@ import {
   canonicalHandPositionForVariant,
   arpeggioCycleApex,
 } from './scale-generator';
-import type { Settings } from '../stores/settings';
+import type { Settings, RhythmToggles } from '../stores/settings';
 import { agilitySpellingMap } from './agility';
 
 const MAX_FRET = 24;
@@ -316,6 +316,17 @@ function variantsFromSettings(s: Settings, stringCount: number): Variant[] {
   return variants;
 }
 
+function enabledRhythmsList(t: RhythmToggles): Rhythm[] {
+  const out: Rhythm[] = [];
+  if (t.quarter) out.push('quarter');
+  if (t.eighth) out.push('eighth');
+  if (t.triplet) out.push('triplet');
+  if (t['8ss']) out.push('8ss');
+  if (t['s8s']) out.push('s8s');
+  if (t['ss8']) out.push('ss8');
+  return out;
+}
+
 /**
  * Build the full set of valid exercise parameter tuples for the current
  * settings. Invalid combos (e.g., a hand position with no playable starting
@@ -325,6 +336,8 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
   const tuning = TUNINGS[s.tuningId];
   const variants = variantsFromSettings(s, tuning.stringCount);
   if (variants.length === 0) return [];
+
+  const rhythms = enabledRhythmsList(s.enabledRhythms);
 
   // Agility variants don't depend on key/scale/handPosition — short-circuit
   // before the keys × scales × handPositions iteration.
@@ -338,6 +351,7 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
   const result: ExerciseParams[] = [];
 
   for (const variant of agilityVariants) {
+    // Agility exercises always use eighth notes regardless of enabledRhythms.
     result.push({
       scale: SCALES.chromatic,
       rootPc: 0,
@@ -350,6 +364,7 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
       keySignature: 0,
       keySignatureLabel: 'C',
       spelling: agilitySpellingMap(variant.spelling),
+      rhythm: 'eighth',
     });
   }
 
@@ -451,7 +466,7 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
           tuning.openMidi[startPos.string] + startPos.fret;
         const apex = highestMidi(scale, lowRootMidi, variant);
         if (fitsWithinMaxFret(apex, tuning)) {
-          result.push({
+          const entry = {
             scale,
             rootPc,
             rootName,
@@ -459,11 +474,14 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
             keySignatureLabel,
             spelling,
             variant,
-            scaleDirection: 'updown',
+            scaleDirection: 'updown' as const,
             handPosition: hp,
             tuning,
             useOpenStrings: false,
-          });
+          };
+          for (const rhythm of rhythms) {
+            result.push({ ...entry, rhythm });
+          }
         }
         if (
           s.includeOpenStringVariants &&
@@ -479,7 +497,7 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
               tuning.openMidi[openStart.string] + openStart.fret;
             const openApex = highestMidi(scale, openLowRootMidi, variant);
             if (fitsWithinMaxFret(openApex, tuning)) {
-              result.push({
+              const openEntry = {
                 scale,
                 rootPc,
                 rootName,
@@ -487,11 +505,14 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
                 keySignatureLabel,
                 spelling,
                 variant,
-                scaleDirection: 'updown',
+                scaleDirection: 'updown' as const,
                 handPosition: hp,
                 tuning,
                 useOpenStrings: true,
-              });
+              };
+              for (const rhythm of rhythms) {
+                result.push({ ...openEntry, rhythm });
+              }
             }
           }
         }

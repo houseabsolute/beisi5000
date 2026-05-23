@@ -705,3 +705,94 @@ describe('paramsKey / paramsFromKey — agility round-trip', () => {
     expect(restored!.variant.kind).toBe('spider');
   });
 });
+
+describe('generateUniverse — rhythm multiplication', () => {
+  function nonAgilityBase(rhythmOverride?: Partial<Settings['enabledRhythms']>): Settings {
+    return {
+      ...baseSettings,
+      enabledScales: { major: true } as Settings['enabledScales'],
+      enabledKeys: ['C'],
+      enabledHandPositions: ['front'],
+      enabledArpeggios: {
+        sizes: { triad: false, seventh: false, ninth: false, eleventh: false, thirteenth: false },
+        directions: { allUp: false, upDown: false, downUp: false, zigzag: false },
+      },
+      enabledAgility: { bigX: false, spider: false },
+      enabledRhythms: {
+        quarter: true,
+        eighth: false,
+        triplet: false,
+        '8ss': false,
+        's8s': false,
+        'ss8': false,
+        ...rhythmOverride,
+      },
+    };
+  }
+
+  test('default settings (quarter only) keep universe size = base × 1', () => {
+    const u = generateUniverse(nonAgilityBase());
+    expect(u.length).toBeGreaterThan(0);
+    for (const p of u) {
+      expect(p.rhythm).toBe('quarter');
+    }
+  });
+
+  test('all 6 rhythms enabled: non-agility entries × 6', () => {
+    const u1 = generateUniverse(nonAgilityBase());
+    const u6 = generateUniverse(
+      nonAgilityBase({
+        eighth: true,
+        triplet: true,
+        '8ss': true,
+        's8s': true,
+        'ss8': true,
+      }),
+    );
+    expect(u6.length).toBe(u1.length * 6);
+  });
+
+  test('agility entries always set rhythm = eighth, ignore enabledRhythms', () => {
+    const s: Settings = {
+      ...baseSettings,
+      enabledVariants: {
+        plain: false, multiOctaveA_2: false, multiOctaveA_3: false,
+        multiOctaveB_2: false, consecutive_3: false, consecutive_4: false,
+        mirror_3: false, mirror_4: false, intervalWalks: false,
+      },
+      enabledArpeggios: {
+        sizes: { triad: false, seventh: false, ninth: false, eleventh: false, thirteenth: false },
+        directions: { allUp: false, upDown: false, downUp: false, zigzag: false },
+      },
+      enabledAgility: { bigX: true, spider: false },
+      enabledRhythms: {
+        quarter: true, eighth: true, triplet: true, '8ss': true, 's8s': true, 'ss8': true,
+      },
+      tuningId: 'fourStringEADG',
+    };
+    const u = generateUniverse(s);
+    // 4-string Big X: 1 startString × 2 directions × 2 spellings = 4 entries.
+    expect(u.length).toBe(4);
+    for (const p of u) {
+      expect(p.rhythm).toBe('eighth');
+    }
+  });
+
+  test('disabling all rhythms: non-agility universe empty; agility still emits', () => {
+    const s: Settings = {
+      ...baseSettings,
+      enabledKeys: ['C'],
+      enabledRhythms: {
+        quarter: false, eighth: false, triplet: false, '8ss': false, 's8s': false, 'ss8': false,
+      },
+    };
+    const u = generateUniverse(s);
+    const nonAgility = u.filter((p) => p.variant.kind !== 'bigX' && p.variant.kind !== 'spider');
+    expect(nonAgility.length).toBe(0);
+    const agility = u.filter((p) => p.variant.kind === 'bigX' || p.variant.kind === 'spider');
+    expect(agility.length).toBeGreaterThan(0);
+    for (const p of agility) {
+      expect(p.rhythm).toBe('eighth');
+    }
+  });
+});
