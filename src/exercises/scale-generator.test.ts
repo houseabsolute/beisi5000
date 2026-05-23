@@ -991,3 +991,67 @@ describe('generateExercise — rhythm application', () => {
     }
   });
 });
+
+describe('formatDisplayName — rhythm glyph', () => {
+  function plainParams(
+    rhythm?: 'quarter' | 'eighth' | 'triplet' | '8ss' | 's8s' | 'ss8',
+  ) {
+    const key = KEYS_BY_ID.C;
+    return {
+      scale: SCALES.major,
+      rootPc: key.pc,
+      rootName: key.name,
+      variant: { kind: 'plain' as const },
+      scaleDirection: 'updown' as const,
+      handPosition: 'front' as const,
+      tuning: TUNINGS.fourStringEADG,
+      keySignature: keySignatureFor(key, SCALES.major),
+      keySignatureLabel: keySignatureLabelFor(key, SCALES.major),
+      rhythm,
+    };
+  }
+
+  test('quarter rhythm appends ♩ glyph', () => {
+    expect(formatDisplayName(plainParams('quarter'))).toContain('♩');
+  });
+  test('eighth rhythm appends ♫ glyph', () => {
+    expect(formatDisplayName(plainParams('eighth'))).toContain('♫');
+  });
+  test('triplet rhythm appends ♫₃ glyph', () => {
+    expect(formatDisplayName(plainParams('triplet'))).toContain('♫₃');
+  });
+  test('8ss appends "(8ss)" label', () => {
+    expect(formatDisplayName(plainParams('8ss'))).toContain('(8ss)');
+  });
+  test('s8s appends "(s8s)" label', () => {
+    expect(formatDisplayName(plainParams('s8s'))).toContain('(s8s)');
+  });
+  test('ss8 appends "(ss8)" label', () => {
+    expect(formatDisplayName(plainParams('ss8'))).toContain('(ss8)');
+  });
+
+  test('undefined rhythm does NOT append a glyph', () => {
+    const name = formatDisplayName(plainParams(undefined));
+    expect(name).not.toContain('♩');
+    expect(name).not.toContain('♫');
+    expect(name).not.toContain('(8ss)');
+  });
+
+  test('agility variant does NOT show rhythm glyph even when rhythm is set', () => {
+    const key = KEYS_BY_ID.C;
+    const name = formatDisplayName({
+      scale: SCALES.chromatic,
+      rootPc: key.pc,
+      rootName: 'C',
+      variant: { kind: 'bigX', startString: 0, direction: 'forward', spelling: 'sharp' },
+      scaleDirection: 'updown',
+      handPosition: 'front',
+      tuning: TUNINGS.fourStringEADG,
+      keySignature: 0,
+      keySignatureLabel: 'C',
+      rhythm: 'eighth',
+    });
+    expect(name).not.toContain('♫');
+    expect(name).not.toContain('♩');
+  });
+});

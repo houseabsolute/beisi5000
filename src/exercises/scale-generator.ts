@@ -28,6 +28,7 @@ import type {
   FretboardNote,
   NoteSequence,
   Variant,
+  Rhythm,
 } from './types';
 
 const DEFAULT_MAX_FRET = 24;
@@ -1453,6 +1454,17 @@ export function generateExercise(params: ExerciseParams): Exercise {
   return { params, sequence, alphaTex, displayName };
 }
 
+function rhythmGlyph(rhythm: Rhythm): string {
+  switch (rhythm) {
+    case 'quarter':  return '♩';
+    case 'eighth':   return '♫';
+    case 'triplet':  return '♫₃';
+    case '8ss':      return '(8ss)';
+    case 's8s':      return '(s8s)';
+    case 'ss8':      return '(ss8)';
+  }
+}
+
 export function formatDisplayName(params: ExerciseParams): string {
   // Agility drills have no key/scale/hand-position concept — display name
   // is just the variant label.
@@ -1462,16 +1474,20 @@ export function formatDisplayName(params: ExerciseParams): string {
   const root = params.rootName ?? pitchClassName(params.rootPc, 'sharp');
   const variantLabel = describeVariant(params.variant, params.scale, params.tuning);
   const openTag = params.useOpenStrings ? ' (open)' : '';
+  // Append rhythm glyph between the variant label and the hand suffix
+  // (or at the end when hand isn't shown). Omitted for agility (above)
+  // and when rhythm is unset (test fixtures, scripts).
+  const rhythmSuffix = params.rhythm ? ` ${rhythmGlyph(params.rhythm)}` : '';
   // Drop the hand-position suffix for walking exercises whose pair
   // span exceeds the hand window — the starting finger is determined
   // by interval direction there, not user choice, so showing "Front"
   // or "Back" would be misleading.
   if (!isHandPositionMeaningful(params.scale, params.variant)) {
-    return `${root} ${params.scale.name}${openTag} — ${variantLabel}`;
+    return `${root} ${params.scale.name}${openTag} — ${variantLabel}${rhythmSuffix}`;
   }
   const handLabel = handPositionLabel(params.handPosition);
   const handEmoji = handPositionEmoji(params.handPosition);
-  return `${root} ${params.scale.name}${openTag} — ${variantLabel} — ${handLabel} ${handEmoji}`;
+  return `${root} ${params.scale.name}${openTag} — ${variantLabel}${rhythmSuffix} — ${handLabel} ${handEmoji}`;
 }
 
 export function describeVariant(v: ExerciseParams['variant'], scale: Scale, tuning: Tuning): string {
