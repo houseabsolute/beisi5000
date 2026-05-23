@@ -542,7 +542,7 @@
           checked={$settings.enabledRhythms.eighth}
           onchange={() => toggleRhythm('eighth')}
         />
-        ♫ Eighth notes
+        ♪ Eighth notes
       </label>
       <label class="checkbox">
         <input

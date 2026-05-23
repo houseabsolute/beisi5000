@@ -1014,8 +1014,8 @@ describe('formatDisplayName — rhythm glyph', () => {
   test('quarter rhythm appends ♩ glyph', () => {
     expect(formatDisplayName(plainParams('quarter'))).toContain('♩');
   });
-  test('eighth rhythm appends ♫ glyph', () => {
-    expect(formatDisplayName(plainParams('eighth'))).toContain('♫');
+  test('eighth rhythm appends ♪ glyph', () => {
+    expect(formatDisplayName(plainParams('eighth'))).toContain('♪');
   });
   test('triplet rhythm appends ♪₃ glyph', () => {
     expect(formatDisplayName(plainParams('triplet'))).toContain('♪₃');
@@ -1033,7 +1033,7 @@ describe('formatDisplayName — rhythm glyph', () => {
   test('undefined rhythm does NOT append a glyph', () => {
     const name = formatDisplayName(plainParams(undefined));
     expect(name).not.toContain('♩');
-    expect(name).not.toContain('♫');
+    expect(name).not.toContain('♪');
     expect(name).not.toContain('(8ss)');
   });
 
@@ -1051,7 +1051,7 @@ describe('formatDisplayName — rhythm glyph', () => {
       keySignatureLabel: 'C',
       rhythm: 'eighth',
     });
-    expect(name).not.toContain('♫');
+    expect(name).not.toContain('♪');
     expect(name).not.toContain('♩');
   });
 });

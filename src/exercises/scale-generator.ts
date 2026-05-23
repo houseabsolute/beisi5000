@@ -1457,7 +1457,7 @@ export function generateExercise(params: ExerciseParams): Exercise {
 function rhythmGlyph(rhythm: Rhythm): string {
   switch (rhythm) {
     case 'quarter':  return '♩';
-    case 'eighth':   return '♫';
+    case 'eighth':   return '♪';
     case 'triplet':  return '♪₃';
     case '8ss':      return '(8ss)';
     case 's8s':      return '(s8s)';
