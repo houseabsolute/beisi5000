@@ -259,7 +259,7 @@ function highestMidi(
       return lowRootMidi + octaveOffset + scale.intervals[idx];
     }
     case 'arpeggioCycle':
-      return arpeggioCycleApex(scale, lowRootMidi, variant.size);
+      return arpeggioCycleApex(scale, lowRootMidi, variant.size, variant.inversion);
     default:
       return lowRootMidi + 12;
   }

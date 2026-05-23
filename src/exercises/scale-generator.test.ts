@@ -610,15 +610,47 @@ describe('pickStartingPosition — maxStringIndex constraint', () => {
 
 describe('arpeggioCycleApex', () => {
   test('triad in C major rooted at C2 → degree 11 = G3', () => {
-    expect(arpeggioCycleApex(SCALES.major, midiOf('C', 2), 3)).toBe(midiOf('G', 3));
+    expect(arpeggioCycleApex(SCALES.major, midiOf('C', 2), 3, 0)).toBe(midiOf('G', 3));
   });
 
   test('7th-chord in C major → degree 13 = B3', () => {
-    expect(arpeggioCycleApex(SCALES.major, midiOf('C', 2), 4)).toBe(midiOf('B', 3));
+    expect(arpeggioCycleApex(SCALES.major, midiOf('C', 2), 4, 0)).toBe(midiOf('B', 3));
   });
 
   test('13th-chord in C major → degree 19 = A4', () => {
-    expect(arpeggioCycleApex(SCALES.major, midiOf('C', 2), 7)).toBe(midiOf('A', 4));
+    expect(arpeggioCycleApex(SCALES.major, midiOf('C', 2), 7, 0)).toBe(midiOf('A', 4));
+  });
+});
+
+describe('arpeggioCycleApex — with inversion', () => {
+  test('inversion 0 matches existing root apex', () => {
+    const C2 = midiOf('C', 2);
+    expect(arpeggioCycleApex(SCALES.major, C2, 3, 0)).toBe(arpeggioCycleApex(SCALES.major, C2, 3, 0));
+  });
+
+  test('triad 1st inv apex is one octave higher than root', () => {
+    // Root: apex at degree 11 (= 7 + 2*(3-1))
+    // 1st inv: apex at degree 14 (= max(11, 7+0+7) = 14)
+    // For C major from C2: degree 14 = 2 octaves + 0 = C4 (MIDI 60)
+    const C2 = midiOf('C', 2);
+    const apex = arpeggioCycleApex(SCALES.major, C2, 3, 1);
+    expect(apex).toBe(midiOf('C', 4));
+  });
+
+  test('triad 2nd inv apex is degree 9 + cycle-pivot offset', () => {
+    // 2nd inv: apex at degree max(11, 7+2+7) = max(11, 16) = 16
+    // For C major from C2: degree 16 = 2 octaves + 2 = E4 (MIDI 64)
+    const C2 = midiOf('C', 2);
+    const apex = arpeggioCycleApex(SCALES.major, C2, 3, 2);
+    expect(apex).toBe(midiOf('E', 4));
+  });
+
+  test('7th 3rd inv apex', () => {
+    // 7th 3rd inv: max(7+2*3, 7+2*2+7) = max(13, 18) = 18
+    // For C major from C2: degree 18 = 2 octaves + 4 = G4 (MIDI 67)
+    const C2 = midiOf('C', 2);
+    const apex = arpeggioCycleApex(SCALES.major, C2, 4, 3);
+    expect(apex).toBe(midiOf('G', 4));
   });
 });
 

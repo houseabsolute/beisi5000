@@ -179,18 +179,22 @@ export function lowestDegreeOffsetSemitones(
 }
 
 /**
- * Highest MIDI value any arpeggio cycle reaches. All 4 directions
- * happen to share the same apex because the asc-half up-arp rooted at
- * the octave (consecutive-root) and zigzag's last down-arp's first
- * note both land at degree `7 + 2*(size − 1)`. Picker uses this to
- * gate combos that don't fit within fret 24.
+ * Highest MIDI value the cycle reaches. Without inversion, this is the
+ * top note of the up-arp at the cycle's pivot (degree 7 = octave). With
+ * inversion K, the K bottom chord tones get raised by an octave, so the
+ * apex shifts up to the highest of those raised notes when raised >
+ * unraised top.
  */
 export function arpeggioCycleApex(
   scale: Scale,
   rootMidi: number,
   size: number,
+  inversion: number,
 ): number {
-  return scaleDegreeMidi(scale, rootMidi, 7 + 2 * (size - 1));
+  const unraisedMax = 7 + 2 * (size - 1);
+  const raisedMax = inversion > 0 ? 7 + 2 * (inversion - 1) + 7 : -Infinity;
+  const apexDegree = Math.max(unraisedMax, raisedMax);
+  return scaleDegreeMidi(scale, rootMidi, apexDegree);
 }
 
 /**
