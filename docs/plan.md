@@ -56,8 +56,6 @@ Bundle size cleanup (lazy-load AlphaTab via dynamic import, ~1.3 MB → ~200 KB)
   - Inversions — arpeggios that don't start on the chord root.
   - Selecting which scale degrees to root on (current pass always cycles 1 → 8).
   - Chord-progression exercises — ii–V–I, cycle of fifths, diatonic 7ths chained, etc. — a different exercise unit (multi-key, not single-key cycle).
-  - Arpeggios on non-diatonic scales (pentatonics, chromatic, octatonic) — would need a different chord-tone-selection convention.
-  - User-selected hand position for arpeggios.
 - Other time signatures (currently 4/4 only).
 - Exercise history / streaks / stats.
 - Cloud sync / multi-user accounts.
