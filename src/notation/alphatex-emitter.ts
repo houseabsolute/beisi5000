@@ -63,73 +63,47 @@ export function majorityAboveA3(notes: NoteSequence): boolean {
 
 /**
  * Decide a clef (bass or treble) for each bar of the sequence using a
- * "run" rule. Each quarter-note beat is classified as `H` (any note on
- * the beat sits above A3) or `L` (every note sits at or below A3). The
- * clef switches when a run of `RUN` consecutive beats sits in the
- * opposite range — preventing flicker on short excursions while still
- * snapping to the right clef when an exercise climbs (or descends)
- * and stays there.
+ * "run" rule. A bar counts as "H" (high) if it contains any note at or
+ * above A3 (MIDI 57 — top line of bass clef). The clef switches when a
+ * run of `RUN` consecutive bars sits in the opposite range — preventing
+ * flicker on short excursions while still snapping to the right clef
+ * when an exercise climbs (or descends) and stays there.
  */
 function computePerBarClefs(
   sequence: NoteSequence,
-  notesPerBeat: number,
-  beatsPerMeasure: number,
+  barNoteIndices: number[][],
 ): ('bass' | 'treble')[] {
-  // Classify each beat. A beat counts as "H" (high) if it contains
-  // any note at or above A3 (MIDI 57 = the bass clef's top line).
-  // The top line itself isn't a ledger line, but exercises that tap
-  // the top line on the way to notes above it read more cleanly when
-  // the whole high run reads under one clef.
-  const totalBeats = Math.ceil(sequence.length / notesPerBeat);
-  const beatClass: ('H' | 'L')[] = [];
-  for (let b = 0; b < totalBeats; b++) {
-    const notes = sequence.slice(b * notesPerBeat, (b + 1) * notesPerBeat);
-    if (notes.length === 0) {
-      beatClass.push('L');
-      continue;
-    }
-    const hasHigh = notes.some((n) => n.midi >= 57);
-    beatClass.push(hasHigh ? 'H' : 'L');
-  }
+  // A bar counts as "H" (high) if it contains any note at or above A3
+  // (MIDI 57 — top line of bass clef). Apply the 3-bar run rule:
+  // flip clefs when 3+ consecutive bars sit in the opposite direction.
+  const barClass: ('H' | 'L')[] = barNoteIndices.map((indices) => {
+    const hasHigh = indices.some((i) => sequence[i] && sequence[i].midi >= 57);
+    return hasHigh ? 'H' : 'L';
+  });
 
-  // Decide clef per beat. Cur changes only when RUN consecutive
-  // beats are firmly in the opposite direction. Short threshold
-  // catches multi-octave climbs that crest only briefly above the
-  // staff. AlphaTab's clef metadata is bar-level — the change will
-  // snap to the bar boundary containing the run, not the precise
-  // beat where the run starts.
-  const RUN = 3;
-  const perBeat: ('bass' | 'treble')[] = [];
+  // RUN=1 at bar level: a single bar in the opposite range triggers the
+  // clef switch. The old beat-level code used RUN=3 beats; at bar level
+  // (where each bar = 4 beats), a single bar threshold matches the
+  // effective sensitivity of the old algorithm for typical exercise
+  // note densities.
+  const RUN = 1;
+  const result: ('bass' | 'treble')[] = [];
   let cur: 'bass' | 'treble' = 'bass';
-  for (let b = 0; b < beatClass.length; b++) {
+  for (let b = 0; b < barClass.length; b++) {
     const oppType = cur === 'bass' ? 'H' : 'L';
-    if (b + RUN <= beatClass.length) {
+    if (b + RUN <= barClass.length) {
       let allOpp = true;
       for (let k = 0; k < RUN; k++) {
-        if (beatClass[b + k] !== oppType) {
+        if (barClass[b + k] !== oppType) {
           allOpp = false;
           break;
         }
       }
       if (allOpp) cur = cur === 'bass' ? 'treble' : 'bass';
     }
-    perBeat.push(cur);
+    result.push(cur);
   }
-
-  // Roll up to per-bar clef. A bar's base clef is the clef in force
-  // at its first beat. AlphaTab clefs are bar-level only (no mid-bar
-  // switches), so a high-note run that starts partway through a bar
-  // moves the clef change to the start of that bar.
-  // Mid-bar clef changes are tracked upstream as an unplanned idea:
-  // https://github.com/CoderLine/alphaTab/issues/1991 — revisit if
-  // that ships.
-  const totalBars = Math.ceil(totalBeats / beatsPerMeasure);
-  const barClefs: ('bass' | 'treble')[] = [];
-  for (let m = 0; m < totalBars; m++) {
-    const firstBeat = m * beatsPerMeasure;
-    barClefs.push(perBeat[firstBeat] ?? 'bass');
-  }
-  return barClefs;
+  return result;
 }
 
 const DEFAULT_TEMPO = 120;
@@ -181,12 +155,19 @@ export function emitAlphaTex(
     return headerLines.join('\n') + '\n.\n';
   }
 
-  const dur = sequence[0].durationDenominator;
-  const notesPerMeasure = dur; // 4/4 timing: notes per measure equals duration denominator
-
   const spelling = options.spelling;
   const showFingers = options.showFingerNumbers ?? false;
+
+  // Build per-note tokens. Each token carries its own optional duration
+  // prefix — the emitter inserts a `:N ` only when the duration changes
+  // from the previous note.
+  let currentDur = -1;
   const tokens = sequence.map((n) => {
+    let prefix = '';
+    if (n.durationDenominator !== currentDur) {
+      prefix = `:${n.durationDenominator} `;
+      currentDur = n.durationDenominator;
+    }
     const alphaTexString = tuning.stringCount - n.string;
     // AlphaTex packs every per-note property into a single `{ ... }`
     // block separated by spaces — multiple `{...}{...}` blocks are
@@ -207,34 +188,64 @@ export function emitAlphaTex(
       // SingleNoteEffectBand subtracts thumb).
       props.push(`lf ${n.finger + 1}`);
     }
+    if (n.tuplet !== undefined) {
+      props.push(`tu ${n.tuplet}`);
+    }
     let token = `${n.fret}.${alphaTexString}`;
     if (props.length > 0) token += `{${props.join(' ')}}`;
-    return token;
+    return prefix + token;
   });
 
+  // Bar splitting by summed beat fraction. Each note contributes
+  //   (4 / durationDenominator) * (tuplet ? 2/tuplet : 1)
+  // beats. When we reach 4 beats, close the bar and start a new one.
+  const BAR_BEATS = 4;
+  const EPS = 0.0001;
+  const beatsPerNote = (n: (typeof sequence)[number]): number => {
+    const raw = 4 / n.durationDenominator;
+    return n.tuplet ? (raw * 2) / n.tuplet : raw;
+  };
+
   const autoClef = options.autoClef ?? false;
-  // Per-bar clef decisions for auto mode. Granularity is a quarter-note
-  // beat (4 beats per 4/4 bar); a clef switch fires when a run of 4+
-  // consecutive beats sits in the opposite range. The new clef applies
-  // starting at the first bar that contains the run.
-  const beatsPerMeasure = 4;
-  const notesPerBeat = Math.max(1, Math.floor(notesPerMeasure / beatsPerMeasure));
+
+  // Walk the sequence, building bar-index-arrays for the autoClef helper
+  // and bar-string lists for the body.
+  const barNoteIndices: number[][] = [[]];
+  let beatsInBar = 0;
+  for (let i = 0; i < sequence.length; i++) {
+    barNoteIndices[barNoteIndices.length - 1].push(i);
+    beatsInBar += beatsPerNote(sequence[i]);
+    if (beatsInBar >= BAR_BEATS - EPS) {
+      beatsInBar = 0;
+      if (i < sequence.length - 1) barNoteIndices.push([]);
+    }
+  }
+
+  // If the last bar has leftover beats, pad with rests matching the
+  // last note's duration so no extra duration prefix is needed.
+  const lastBar = barNoteIndices[barNoteIndices.length - 1];
+  if (lastBar.length > 0 && beatsInBar > EPS) {
+    const lastNote = sequence[lastBar[lastBar.length - 1]];
+    const restBeats = BAR_BEATS - beatsInBar;
+    const restBeatsPerSlot = beatsPerNote(lastNote);
+    const restCount = Math.max(1, Math.round(restBeats / restBeatsPerSlot));
+    for (let r = 0; r < restCount; r++) {
+      tokens.push('r');
+      lastBar.push(tokens.length - 1);
+    }
+  }
+
   const barClefs = autoClef
-    ? computePerBarClefs(sequence, notesPerBeat, beatsPerMeasure)
+    ? computePerBarClefs(sequence, barNoteIndices)
     : null;
 
   const measures: string[] = [];
   let activeClef: 'bass' | 'treble' = 'bass';
-  for (let i = 0; i < tokens.length; i += notesPerMeasure) {
-    const slice = tokens.slice(i, i + notesPerMeasure);
-    // Pad incomplete measure with rests so 4/4 timing always sums to 4 beats.
-    const padding = notesPerMeasure - slice.length;
-    if (padding > 0) {
-      for (let p = 0; p < padding; p++) slice.push('r');
-    }
+  for (let m = 0; m < barNoteIndices.length; m++) {
+    const indices = barNoteIndices[m];
+    const slice = indices.map((i) => tokens[i]);
     let prefix = '';
     if (barClefs) {
-      const m = i / notesPerMeasure;
       const desired: 'bass' | 'treble' = barClefs[m] ?? activeClef;
       if (desired !== activeClef) {
         // Insert a bar-level clef change before this measure. AlphaTex
@@ -246,7 +257,7 @@ export function emitAlphaTex(
     measures.push(prefix + slice.join(' '));
   }
 
-  const body = ksToken + `:${dur} ` + measures.join(' | ');
+  const body = ksToken + measures.join(' | ');
   return headerLines.join('\n') + '\n.\n' + body;
 }
 

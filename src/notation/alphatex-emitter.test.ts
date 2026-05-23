@@ -2,6 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { emitAlphaTex } from './alphatex-emitter';
 import { TUNINGS } from '../theory/tunings';
 import type { NoteSequence } from '../exercises/types';
+import type { AccidentalKind } from '../theory/keys';
 
 const cMajorAscending: NoteSequence = [
   { string: 1, fret: 3, midi: 36, durationDenominator: 8 }, // C2
@@ -212,5 +213,70 @@ describe('emitAlphaTex — autoClef', () => {
     const tex = emitAlphaTex(seq, TUNINGS.fourStringEADG, { autoClef: true });
     const bodyClefSwitches = (tex.split('\n.\n')[1]?.match(/\\clef/g) || []).length;
     expect(bodyClefSwitches).toBe(0);
+  });
+});
+
+describe('emitAlphaTex — mixed durations', () => {
+  test('uniform quarter notes emit a single :4 prefix', () => {
+    const seq: NoteSequence = [
+      { string: 1, fret: 3, midi: 36, durationDenominator: 4 },
+      { string: 1, fret: 5, midi: 38, durationDenominator: 4 },
+      { string: 1, fret: 7, midi: 40, durationDenominator: 4 },
+      { string: 1, fret: 8, midi: 41, durationDenominator: 4 },
+    ];
+    const tex = emitAlphaTex(seq, TUNINGS.fourStringEADG);
+    expect(tex).toContain(':4');
+    // Only ONE :4 token (no per-note duration changes).
+    const matches = tex.match(/:4(?:\s|$)/g) || [];
+    expect(matches.length).toBe(1);
+  });
+
+  test('uniform eighth notes emit a single :8 prefix', () => {
+    const seq: NoteSequence = [
+      { string: 1, fret: 3, midi: 36, durationDenominator: 8 },
+      { string: 1, fret: 5, midi: 38, durationDenominator: 8 },
+    ];
+    const tex = emitAlphaTex(seq, TUNINGS.fourStringEADG);
+    const matches = tex.match(/:8(?:\s|$)/g) || [];
+    expect(matches.length).toBe(1);
+  });
+
+  test('mixed 8ss pattern emits both :8 and :16 prefixes', () => {
+    const seq: NoteSequence = [
+      { string: 1, fret: 3, midi: 36, durationDenominator: 8 },
+      { string: 1, fret: 4, midi: 37, durationDenominator: 16 },
+      { string: 1, fret: 5, midi: 38, durationDenominator: 16 },
+      { string: 1, fret: 6, midi: 39, durationDenominator: 8 },
+      { string: 1, fret: 7, midi: 40, durationDenominator: 16 },
+      { string: 1, fret: 8, midi: 41, durationDenominator: 16 },
+    ];
+    const tex = emitAlphaTex(seq, TUNINGS.fourStringEADG);
+    expect(tex).toContain(':8');
+    expect(tex).toContain(':16');
+  });
+
+  test('triplet notes emit {tu 3} on every note', () => {
+    const seq: NoteSequence = [
+      { string: 1, fret: 3, midi: 36, durationDenominator: 8, tuplet: 3 },
+      { string: 1, fret: 5, midi: 38, durationDenominator: 8, tuplet: 3 },
+      { string: 1, fret: 7, midi: 40, durationDenominator: 8, tuplet: 3 },
+    ];
+    const tex = emitAlphaTex(seq, TUNINGS.fourStringEADG);
+    const matches = tex.match(/\{tu 3\}/g) || [];
+    expect(matches.length).toBe(3);
+  });
+
+  test('triplet combined with spelling — both properties in one {} block', () => {
+    const spelling = new Map<number, AccidentalKind>();
+    spelling.set(1, 'sharp');
+    const seq: NoteSequence = [
+      // MIDI 37 → pitch class 1 = C♯
+      { string: 1, fret: 4, midi: 37, durationDenominator: 8, tuplet: 3 },
+    ];
+    const tex = emitAlphaTex(seq, TUNINGS.fourStringEADG, { spelling });
+    // BOTH acc and tu inside ONE {} block (not two separate blocks).
+    expect(tex).toMatch(/\{[^}]*acc\s+forceSharp[^}]*tu\s+3[^}]*\}|\{[^}]*tu\s+3[^}]*acc\s+forceSharp[^}]*\}/);
+    // Should NOT have two separate {} blocks
+    expect(tex).not.toMatch(/\}\s*\{/);
   });
 });
