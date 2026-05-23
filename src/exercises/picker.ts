@@ -121,6 +121,7 @@ export function paramsFromKey(key: string): ExerciseParams | null {
         kind: 'arpeggioCycle',
         size: size as 3 | 4 | 5 | 6 | 7,
         direction: dirStr as 'allUp' | 'upDown' | 'downUp' | 'zigzag',
+        inversion: 0,  // TODO Task 8 will parse from URL
       };
     } else if (kind === 'agility') {
       // rest format: "<subkind>:<index>:<dir>:<spelling>"
@@ -307,6 +308,7 @@ function variantsFromSettings(s: Settings, stringCount: number): Variant[] {
         kind: 'arpeggioCycle',
         size: SIZE_VALUES[i],
         direction: dir,
+        inversion: 0,  // TODO Task 6 will iterate enabled inversions
       });
     }
   }

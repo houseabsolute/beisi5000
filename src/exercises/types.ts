@@ -23,7 +23,7 @@ export type Variant =
     }
   | { kind: 'multiOctaveA'; octaves: number }
   | { kind: 'multiOctaveB'; octaves: number }
-  | { kind: 'arpeggioCycle'; size: 3 | 4 | 5 | 6 | 7; direction: ArpDirection }
+  | { kind: 'arpeggioCycle'; size: 3 | 4 | 5 | 6 | 7; direction: ArpDirection; inversion: number }
   | { kind: 'bigX'; startString: number; direction: AgilityDirection; spelling: AgilitySpelling }
   | { kind: 'spider'; lowerString: number; direction: AgilityDirection; spelling: AgilitySpelling };
 

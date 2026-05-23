@@ -105,6 +105,7 @@ function parseVariant(spec: string): Variant {
       kind: 'arpeggioCycle',
       size: size as 3 | 4 | 5 | 6 | 7,
       direction: arp[2] as 'allUp' | 'upDown' | 'downUp' | 'zigzag',
+      inversion: 0,
     };
   }
   const bigx = spec.match(/^bigx(\d+)-(fwd|rev)-(sharp|flat)$/);

@@ -626,7 +626,7 @@ describe('startConstraintsForVariant — arpeggio', () => {
   test('4-string tuning → maxStringIndex = 1', () => {
     const c = startConstraintsForVariant(
       SCALES.major,
-      { kind: 'arpeggioCycle', size: 3, direction: 'allUp' },
+      { kind: 'arpeggioCycle', size: 3, direction: 'allUp', inversion: 0 },
       TUNINGS.fourStringEADG,
     );
     expect(c.maxStringIndex).toBe(1);
@@ -636,7 +636,7 @@ describe('startConstraintsForVariant — arpeggio', () => {
   test('5-string tuning → maxStringIndex = 2', () => {
     const c = startConstraintsForVariant(
       SCALES.major,
-      { kind: 'arpeggioCycle', size: 7, direction: 'zigzag' },
+      { kind: 'arpeggioCycle', size: 7, direction: 'zigzag', inversion: 0 },
       TUNINGS.fiveStringBEADG,
     );
     expect(c.maxStringIndex).toBe(2);
@@ -645,7 +645,7 @@ describe('startConstraintsForVariant — arpeggio', () => {
   test('6-string tuning → maxStringIndex = 2', () => {
     const c = startConstraintsForVariant(
       SCALES.major,
-      { kind: 'arpeggioCycle', size: 3, direction: 'allUp' },
+      { kind: 'arpeggioCycle', size: 3, direction: 'allUp', inversion: 0 },
       TUNINGS.sixStringBEADGC,
     );
     expect(c.maxStringIndex).toBe(2);
@@ -676,7 +676,7 @@ describe('generateExercise — arpeggioCycle', () => {
       scale,
       rootPc: key.pc,
       rootName: key.name,
-      variant: { kind: 'arpeggioCycle' as const, size, direction },
+      variant: { kind: 'arpeggioCycle' as const, size, direction, inversion: 0 },
       scaleDirection: 'updown' as const,
       handPosition: 'front' as const,
       tuning,
@@ -744,7 +744,7 @@ describe('formatDisplayName — arpeggios', () => {
       scale,
       rootPc: key.pc,
       rootName: key.name,
-      variant: { kind: 'arpeggioCycle' as const, size, direction },
+      variant: { kind: 'arpeggioCycle' as const, size, direction, inversion: 0 },
       scaleDirection: 'updown' as const,
       handPosition: 'front' as const,
       tuning: TUNINGS.fourStringEADG,
