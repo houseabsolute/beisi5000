@@ -128,6 +128,30 @@ export function arpDown(
 }
 
 /**
+ * Build one arpeggio of `size` notes for the chord rooted at scale
+ * degree `d`, voiced in `inversion` (0 = root position; K = K-th
+ * inversion). For inversion K, the K chord tones below the new bass
+ * get raised one octave so they sit above. Notes returned in
+ * pitch-ascending order. Equivalent to `arpUp` when inversion = 0.
+ */
+export function invertedArpUp(
+  scale: Scale,
+  rootMidi: number,
+  d: number,
+  size: number,
+  inversion: number,
+): number[] {
+  const SCALE_LEN = 7;
+  const degrees: number[] = [];
+  for (let pos = 0; pos < size; pos++) {
+    const degree = d + 2 * pos + (pos < inversion ? SCALE_LEN : 0);
+    degrees.push(degree);
+  }
+  degrees.sort((a, b) => a - b);
+  return degrees.map((deg) => scaleDegreeMidi(scale, rootMidi, deg));
+}
+
+/**
  * Cycle through diatonic-third arpeggios rooted on each scale degree.
  * Asc + desc with the high-root arp as the pivot so the exercise
  * resolves symmetrically (same shape as the walking-interval cycles).

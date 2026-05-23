@@ -360,3 +360,47 @@ describe('arpeggioCycleMidi — zigzag (9th-chord, size > 3 case)', () => {
     }
   });
 });
+
+import { invertedArpUp } from './variants';
+
+describe('invertedArpUp', () => {
+  const cMaj = SCALES.major;
+  const C2 = 36;
+
+  test('inversion 0 equals existing arpUp output (root position)', () => {
+    expect(invertedArpUp(cMaj, C2, 0, 3, 0)).toEqual(arpUp(cMaj, C2, 0, 3));
+    expect(invertedArpUp(cMaj, C2, 2, 4, 0)).toEqual(arpUp(cMaj, C2, 2, 4));
+  });
+
+  test('triad 1st inversion of C major at d=0 → [E, G, C(8va)]', () => {
+    // Notes at MIDI: E2=40, G2=43, C3=48
+    expect(invertedArpUp(cMaj, C2, 0, 3, 1)).toEqual([40, 43, 48]);
+  });
+
+  test('triad 2nd inversion of C major at d=0 → [G, C(8va), E(8va)]', () => {
+    // Notes at MIDI: G2=43, C3=48, E3=52
+    expect(invertedArpUp(cMaj, C2, 0, 3, 2)).toEqual([43, 48, 52]);
+  });
+
+  test('7th 1st inversion of C major at d=0 → [E, G, B, C(8va)]', () => {
+    // Notes at MIDI: E2=40, G2=43, B2=47, C3=48
+    expect(invertedArpUp(cMaj, C2, 0, 4, 1)).toEqual([40, 43, 47, 48]);
+  });
+
+  test('7th 3rd inversion of C major at d=0 → [B, C(8va), E(8va), G(8va)]', () => {
+    // B2=47, C3=48, E3=52, G3=55
+    expect(invertedArpUp(cMaj, C2, 0, 4, 3)).toEqual([47, 48, 52, 55]);
+  });
+
+  test('9th 3rd inversion of C major at d=0 → [B, C(8va), D(8va), E(8va), G(8va)]', () => {
+    // Verifies sort handles a mid-cycle wrap correctly
+    // B2=47, C3=48, D3=50, E3=52, G3=55
+    expect(invertedArpUp(cMaj, C2, 0, 5, 3)).toEqual([47, 48, 50, 52, 55]);
+  });
+
+  test('triad 1st inversion of C major at d=7 (octave-up root) → [E(8va), G(8va), C(16va)]', () => {
+    // d=7 means start the chord at the octave-up C (MIDI 48)
+    // 1st inv: E3=52, G3=55, C4=60
+    expect(invertedArpUp(cMaj, C2, 7, 3, 1)).toEqual([52, 55, 60]);
+  });
+});
