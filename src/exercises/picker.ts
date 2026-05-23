@@ -300,16 +300,25 @@ function variantsFromSettings(s: Settings, stringCount: number): Variant[] {
     'downUp',
     'zigzag',
   ];
+  const INV_KEYS = ['root', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth'] as const;
+  const INV_VALUES = [0, 1, 2, 3, 4, 5, 6];
   for (let i = 0; i < SIZE_KEYS.length; i++) {
     if (!s.enabledArpeggios.sizes[SIZE_KEYS[i]]) continue;
-    for (const dir of DIRECTIONS) {
-      if (!s.enabledArpeggios.directions[dir]) continue;
-      variants.push({
-        kind: 'arpeggioCycle',
-        size: SIZE_VALUES[i],
-        direction: dir,
-        inversion: 0,  // TODO Task 6 will iterate enabled inversions
-      });
+    const size = SIZE_VALUES[i];
+    for (const direction of DIRECTIONS) {
+      if (!s.enabledArpeggios.directions[direction]) continue;
+      if (direction === 'allUp') {
+        // Iterate enabled inversions; skip those exceeding size-1.
+        for (let k = 0; k < INV_KEYS.length; k++) {
+          if (!s.enabledArpeggioInversions[INV_KEYS[k]]) continue;
+          const inv = INV_VALUES[k];
+          if (inv >= size) continue;  // 3rd inv of triad is invalid, etc.
+          variants.push({ kind: 'arpeggioCycle', size, direction, inversion: inv });
+        }
+      } else {
+        // Non-allUp: always inversion 0, ignore inversion toggles.
+        variants.push({ kind: 'arpeggioCycle', size, direction, inversion: 0 });
+      }
     }
   }
   const AGILITY_DIRECTIONS: Array<'forward' | 'reverse'> = ['forward', 'reverse'];

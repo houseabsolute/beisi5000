@@ -897,3 +897,80 @@ describe('paramsKey / paramsFromKey — rhythm round-trip', () => {
     expect(paramsFromKey(key)!.rhythm).toBe('eighth');
   });
 });
+
+describe('generateUniverse — arpeggio inversions', () => {
+  function arpsOnly(invToggles?: Partial<Settings['enabledArpeggioInversions']>): Settings {
+    const empty = (val: boolean) => ({
+      plain: val, multiOctaveA_2: val, multiOctaveA_3: val, multiOctaveB_2: val,
+      consecutive_3: val, consecutive_4: val, mirror_3: val, mirror_4: val,
+      intervalWalks: val,
+    });
+    return {
+      ...baseSettings,
+      enabledVariants: empty(false),
+      enabledArpeggios: {
+        sizes: { triad: true, seventh: false, ninth: false, eleventh: false, thirteenth: false },
+        directions: { allUp: true, upDown: false, downUp: false, zigzag: false },
+      },
+      enabledAgility: { bigX: false, spider: false },
+      enabledScales: { major: true } as Settings['enabledScales'],
+      enabledKeys: ['C'],
+      enabledHandPositions: ['front'],
+      enabledArpeggioInversions: {
+        root: invToggles?.root ?? true,
+        first: invToggles?.first ?? false,
+        second: invToggles?.second ?? false,
+        third: invToggles?.third ?? false,
+        fourth: invToggles?.fourth ?? false,
+        fifth: invToggles?.fifth ?? false,
+        sixth: invToggles?.sixth ?? false,
+      },
+    };
+  }
+
+  test('default (root only): triad allUp → 1 entry per (scale, key) with inversion 0', () => {
+    const universe = generateUniverse(arpsOnly());
+    expect(universe.length).toBeGreaterThan(0);
+    for (const p of universe) {
+      expect(p.variant.kind).toBe('arpeggioCycle');
+      if (p.variant.kind === 'arpeggioCycle') {
+        expect(p.variant.inversion).toBe(0);
+      }
+    }
+  });
+
+  test('all 3 valid triad inversions enabled → 3 triad entries per (scale, key)', () => {
+    const u = generateUniverse(arpsOnly({
+      root: true, first: true, second: true,
+    }));
+    // Triad allUp × 3 inversions × 1 scale × 1 key = 3 entries (and these are the only entries)
+    expect(u.length).toBe(3);
+    const inversions = u.map((p) => p.variant.kind === 'arpeggioCycle' ? p.variant.inversion : -1).sort();
+    expect(inversions).toEqual([0, 1, 2]);
+  });
+
+  test('triad with 3rd inv enabled does NOT add entries (3rd inv requires size ≥ 4)', () => {
+    const u = generateUniverse(arpsOnly({
+      root: false, third: true,
+    }));
+    // Triad allUp, only 3rd inv enabled → 0 entries (3rd inv invalid for triads)
+    expect(u.length).toBe(0);
+  });
+
+  test('non-allUp directions always have inversion=0, regardless of toggles', () => {
+    const s: Settings = {
+      ...arpsOnly({ root: false, first: true, second: true }),
+      enabledArpeggios: {
+        sizes: { triad: true, seventh: false, ninth: false, eleventh: false, thirteenth: false },
+        directions: { allUp: false, upDown: true, downUp: false, zigzag: false },
+      },
+    };
+    const u = generateUniverse(s);
+    // upDown ignores inversion toggles. 1 entry expected (1 size × 1 direction).
+    expect(u.length).toBe(1);
+    expect(u[0].variant.kind).toBe('arpeggioCycle');
+    if (u[0].variant.kind === 'arpeggioCycle') {
+      expect(u[0].variant.inversion).toBe(0);
+    }
+  });
+});
