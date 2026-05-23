@@ -7,6 +7,8 @@ export type ScaleDirection = 'up' | 'down' | 'updown';
 
 export type ArpDirection = 'allUp' | 'upDown' | 'downUp' | 'zigzag';
 
+export type Rhythm = 'quarter' | 'eighth' | 'triplet' | '8ss' | 's8s' | 'ss8';
+
 export type AgilityDirection = 'forward' | 'reverse';
 export type AgilitySpelling = 'sharp' | 'flat';
 
@@ -77,6 +79,12 @@ export interface FretboardNote {
    * the hand anchored when picking among candidate positions.
    */
   finger?: number;
+  /**
+   * Tuplet ratio (e.g., 3 = "3 in the time of 2"). When set, the
+   * AlphaTex emitter emits `{tu N}` for the note so it renders with
+   * the appropriate tuplet bracket. Used by triplet rhythms.
+   */
+  tuplet?: number;
 }
 
 export type NoteSequence = FretboardNote[];
