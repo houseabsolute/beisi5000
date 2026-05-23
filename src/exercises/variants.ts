@@ -162,11 +162,12 @@ export function arpeggioCycleMidi(
   rootMidi: number,
   size: 3 | 4 | 5 | 6 | 7,
   direction: ArpDirection,
+  inversion: number = 0,
 ): number[] {
   if (direction === 'zigzag') {
-    return arpeggioZigzag(scale, rootMidi, size);
+    return arpeggioZigzag(scale, rootMidi, size); // zigzag ignores inversion
   }
-  return arpeggioConsecutive(scale, rootMidi, size, direction);
+  return arpeggioConsecutive(scale, rootMidi, size, direction, inversion);
 }
 
 function arpeggioConsecutive(
@@ -174,17 +175,39 @@ function arpeggioConsecutive(
   rootMidi: number,
   size: number,
   direction: Exclude<ArpDirection, 'zigzag'>,
+  inversion: number,
 ): number[] {
-  const ascUp = direction === 'allUp' || direction === 'upDown';
-  const descUp = direction === 'allUp' || direction === 'downUp';
   const out: number[] = [];
+  // Asc half (d=0..7)
   for (let d = 0; d <= 7; d++) {
-    out.push(...(ascUp ? arpUp(scale, rootMidi, d, size) : arpDown(scale, rootMidi, d, size)));
+    out.push(...arpAtDegree(scale, rootMidi, d, size, direction, inversion, 'asc'));
   }
+  // Desc half (d=7..0)
   for (let d = 7; d >= 0; d--) {
-    out.push(...(descUp ? arpUp(scale, rootMidi, d, size) : arpDown(scale, rootMidi, d, size)));
+    out.push(...arpAtDegree(scale, rootMidi, d, size, direction, inversion, 'desc'));
   }
   return out;
+}
+
+function arpAtDegree(
+  scale: Scale,
+  rootMidi: number,
+  d: number,
+  size: number,
+  direction: Exclude<ArpDirection, 'zigzag'>,
+  inversion: number,
+  half: 'asc' | 'desc',
+): number[] {
+  const useUp =
+    (half === 'asc' && (direction === 'allUp' || direction === 'upDown')) ||
+    (half === 'desc' && (direction === 'allUp' || direction === 'downUp'));
+  if (useUp) {
+    // Only allUp gets inverted; upDown/downUp's up-arp halves stay at root position.
+    return direction === 'allUp'
+      ? invertedArpUp(scale, rootMidi, d, size, inversion)
+      : arpUp(scale, rootMidi, d, size);
+  }
+  return arpDown(scale, rootMidi, d, size);
 }
 
 function arpeggioZigzag(

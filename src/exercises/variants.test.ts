@@ -362,6 +362,46 @@ describe('arpeggioCycleMidi — zigzag (9th-chord, size > 3 case)', () => {
   });
 });
 
+describe('arpeggioCycleMidi — inversion (allUp only)', () => {
+  const cMaj = SCALES.major;
+  const C2 = 36;
+
+  test('allUp inversion 0 = existing root-position output', () => {
+    const before = arpeggioCycleMidi(cMaj, C2, 3, 'allUp', 0);
+    // Sanity: matches the historical root-position triad cycle.
+    // First arp at d=0 should be [C, E, G]
+    expect(before.slice(0, 3)).toEqual([36, 40, 43]);
+  });
+
+  test('allUp inversion 1 — first arp at d=0 is [E, G, C(8va)]', () => {
+    const seq = arpeggioCycleMidi(cMaj, C2, 3, 'allUp', 1);
+    expect(seq.slice(0, 3)).toEqual([40, 43, 48]);
+  });
+
+  test('allUp inversion 2 — first arp at d=0 is [G, C(8va), E(8va)]', () => {
+    const seq = arpeggioCycleMidi(cMaj, C2, 3, 'allUp', 2);
+    expect(seq.slice(0, 3)).toEqual([43, 48, 52]);
+  });
+
+  test('upDown ignores inversion — inversion arg has no effect', () => {
+    const root = arpeggioCycleMidi(cMaj, C2, 3, 'upDown', 0);
+    const inv1 = arpeggioCycleMidi(cMaj, C2, 3, 'upDown', 1);
+    expect(inv1).toEqual(root);
+  });
+
+  test('downUp ignores inversion', () => {
+    const root = arpeggioCycleMidi(cMaj, C2, 3, 'downUp', 0);
+    const inv2 = arpeggioCycleMidi(cMaj, C2, 3, 'downUp', 2);
+    expect(inv2).toEqual(root);
+  });
+
+  test('zigzag ignores inversion', () => {
+    const root = arpeggioCycleMidi(cMaj, C2, 3, 'zigzag', 0);
+    const inv1 = arpeggioCycleMidi(cMaj, C2, 3, 'zigzag', 1);
+    expect(inv1).toEqual(root);
+  });
+});
+
 describe('invertedArpUp', () => {
   const cMaj = SCALES.major;
   const C2 = 36;
