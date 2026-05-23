@@ -63,47 +63,72 @@ export function majorityAboveA3(notes: NoteSequence): boolean {
 
 /**
  * Decide a clef (bass or treble) for each bar of the sequence using a
- * "run" rule. A bar counts as "H" (high) if it contains any note at or
- * above A3 (MIDI 57 — top line of bass clef). The clef switches when a
- * run of `RUN` consecutive bars sits in the opposite range — preventing
- * flicker on short excursions while still snapping to the right clef
- * when an exercise climbs (or descends) and stays there.
+ * beat-level "run" rule. Beat-level classification preserves the original
+ * noise-filter behavior: switch clefs only when a run of 3 consecutive
+ * beats sits in the opposite range. With mixed-duration rhythms, beat
+ * boundaries don't align with note count — partition by summed duration
+ * to define each beat's note membership.
  */
 function computePerBarClefs(
   sequence: NoteSequence,
   barNoteIndices: number[][],
 ): ('bass' | 'treble')[] {
-  // A bar counts as "H" (high) if it contains any note at or above A3
-  // (MIDI 57 — top line of bass clef). Apply the 3-bar run rule:
-  // flip clefs when 3+ consecutive bars sit in the opposite direction.
-  const barClass: ('H' | 'L')[] = barNoteIndices.map((indices) => {
-    const hasHigh = indices.some((i) => sequence[i] && sequence[i].midi >= 57);
-    return hasHigh ? 'H' : 'L';
-  });
+  const BEAT_BEATS = 1; // one quarter beat
+  const EPS = 0.0001;
 
-  // RUN=1 at bar level: a single bar in the opposite range triggers the
-  // clef switch. The old beat-level code used RUN=3 beats; at bar level
-  // (where each bar = 4 beats), a single bar threshold matches the
-  // effective sensitivity of the old algorithm for typical exercise
-  // note densities.
-  const RUN = 1;
-  const result: ('bass' | 'treble')[] = [];
+  const beatsPerNote = (n: NoteSequence[number]): number => {
+    const raw = 4 / n.durationDenominator;
+    return n.tuplet ? (raw * 2) / n.tuplet : raw;
+  };
+
+  // Walk all notes, accumulating into beats. Record which beat each
+  // note belongs to (parallel array to sequence).
+  const noteBeatIndex: number[] = [];
+  const beatNoteIndices: number[][] = [[]];
+  let beatsInBeat = 0;
+  for (let i = 0; i < sequence.length; i++) {
+    beatNoteIndices[beatNoteIndices.length - 1].push(i);
+    noteBeatIndex.push(beatNoteIndices.length - 1);
+    beatsInBeat += beatsPerNote(sequence[i]);
+    if (beatsInBeat >= BEAT_BEATS - EPS) {
+      beatsInBeat = 0;
+      if (i < sequence.length - 1) beatNoteIndices.push([]);
+    }
+  }
+
+  // Per-beat class: H if any note in the beat is at or above MIDI 57
+  // (top line of bass clef). Matches the existing threshold.
+  const beatClass: ('H' | 'L')[] = beatNoteIndices.map((indices) =>
+    indices.some((i) => sequence[i] && sequence[i].midi >= 57) ? 'H' : 'L',
+  );
+
+  // RUN=3 noise filter: flip clef when 3 consecutive beats sit in the
+  // opposite direction.
+  const RUN = 3;
+  const perBeat: ('bass' | 'treble')[] = [];
   let cur: 'bass' | 'treble' = 'bass';
-  for (let b = 0; b < barClass.length; b++) {
+  for (let b = 0; b < beatClass.length; b++) {
     const oppType = cur === 'bass' ? 'H' : 'L';
-    if (b + RUN <= barClass.length) {
+    if (b + RUN <= beatClass.length) {
       let allOpp = true;
       for (let k = 0; k < RUN; k++) {
-        if (barClass[b + k] !== oppType) {
+        if (beatClass[b + k] !== oppType) {
           allOpp = false;
           break;
         }
       }
       if (allOpp) cur = cur === 'bass' ? 'treble' : 'bass';
     }
-    result.push(cur);
+    perBeat.push(cur);
   }
-  return result;
+
+  // Roll up per-bar: bar's clef = clef at its first beat (= beat that
+  // contains the bar's first note).
+  return barNoteIndices.map((indices) => {
+    if (indices.length === 0) return 'bass';
+    const firstBeat = noteBeatIndex[indices[0]];
+    return perBeat[firstBeat] ?? 'bass';
+  });
 }
 
 const DEFAULT_TEMPO = 120;
