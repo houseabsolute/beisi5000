@@ -123,6 +123,15 @@
         mirror_4: true,
         intervalWalks: true,
       },
+      enabledArpeggioInversions: {
+        root: true,
+        first: true,
+        second: true,
+        third: true,
+        fourth: true,
+        fifth: true,
+        sixth: true,
+      },
       includeOpenStringVariants: true,
     };
     return generateUniverse(synthetic);

@@ -624,9 +624,9 @@ describe('arpeggioCycleApex', () => {
 });
 
 describe('arpeggioCycleApex — with inversion', () => {
-  test('inversion 0 matches existing root apex', () => {
+  test('inversion 0 matches existing root apex (triad → G3)', () => {
     const C2 = midiOf('C', 2);
-    expect(arpeggioCycleApex(SCALES.major, C2, 3, 0)).toBe(arpeggioCycleApex(SCALES.major, C2, 3, 0));
+    expect(arpeggioCycleApex(SCALES.major, C2, 3, 0)).toBe(midiOf('G', 3));
   });
 
   test('triad 1st inv apex is one octave higher than root', () => {
