@@ -2,7 +2,7 @@
   import { practiceLog } from '../stores/practice-log';
   import { settings } from '../stores/settings';
   import { generateUniverse } from '../exercises/picker';
-  import { cellKeyFor } from '../stores/practice-log';
+  import { cellKeyFor, familyForVariant } from '../stores/practice-log';
   import type { ExerciseParams } from '../exercises/types';
 
   interface Props {
@@ -12,20 +12,33 @@
   }
   let { open, onClose, onPick }: Props = $props();
 
-  // Universe + derived cell-key set — recomputed only when settings change.
-  const enabledCellKeys = $derived.by<ReadonlySet<string>>(() => {
-    const set = new Set<string>();
+  // Single pass over the enabled universe: bucket all params by cellKey
+  // so we can render labels, compute coverage, and pick a random
+  // exercise for a row without traversing the universe again.
+  const paramsByCell = $derived.by<Map<string, ExerciseParams[]>>(() => {
+    const m = new Map<string, ExerciseParams[]>();
     for (const p of generateUniverse($settings)) {
-      set.add(cellKeyFor(p));
+      const k = cellKeyFor(p);
+      const arr = m.get(k);
+      if (arr) arr.push(p);
+      else m.set(k, [p]);
     }
-    return set;
+    return m;
   });
+
+  const enabledCellKeys = $derived.by<ReadonlySet<string>>(() => new Set(paramsByCell.keys()));
 
   // Aggregate totals from the store.
   const totalSessions = $derived(
     Object.values($practiceLog.cells).reduce((sum, c) => sum + c.count, 0),
   );
-  const coverageStats = $derived(practiceLog.coverage(enabledCellKeys));
+  const coverageStats = $derived.by(() => {
+    let played = 0;
+    for (const key of enabledCellKeys) {
+      if ($practiceLog.cells[key]?.count) played++;
+    }
+    return { played, total: enabledCellKeys.size };
+  });
   const coveragePct = $derived(
     coverageStats.total === 0 ? 0 : Math.round((coverageStats.played / coverageStats.total) * 100),
   );
@@ -53,19 +66,8 @@
     agility: 'Agility',
   };
 
-  // Universe entries are dense in (scale, key, family) combos — pick one
-  // params per cellKey so we can render the row label and replay later.
-  const sampleParamsByCell = $derived.by<Map<string, ExerciseParams>>(() => {
-    const m = new Map<string, ExerciseParams>();
-    for (const p of generateUniverse($settings)) {
-      const k = cellKeyFor(p);
-      if (!m.has(k)) m.set(k, p);
-    }
-    return m;
-  });
-
   function rowLabel(p: ExerciseParams): string {
-    const family = cellKeyFor(p).split('|').pop() as string;
+    const family = familyForVariant(p.variant);
     const familyLabel = FAMILY_LABEL[family] ?? family;
     if (family === 'agility') {
       return `${p.tuning.name} — Agility`;
@@ -77,11 +79,11 @@
   const ROW_CAP = 50;
   const rows = $derived.by<Row[]>(() => {
     const out: Row[] = [];
-    for (const [cellKey, sampleParams] of sampleParamsByCell) {
+    for (const [cellKey, paramsList] of paramsByCell) {
       const cell = $practiceLog.cells[cellKey];
       out.push({
         cellKey,
-        label: rowLabel(sampleParams),
+        label: rowLabel(paramsList[0]),
         count: cell?.count ?? 0,
         lastPlayedTs: cell?.lastPlayedTs ?? null,
       });
@@ -111,11 +113,8 @@
   }
 
   function pickRandomFromCell(cellKey: string): void {
-    const matches: ExerciseParams[] = [];
-    for (const p of generateUniverse($settings)) {
-      if (cellKeyFor(p) === cellKey) matches.push(p);
-    }
-    if (matches.length === 0) return;
+    const matches = paramsByCell.get(cellKey);
+    if (!matches || matches.length === 0) return;
     const pick = matches[Math.floor(Math.random() * matches.length)];
     onPick(pick);
     onClose();
