@@ -56,3 +56,23 @@ export function cellKeyFor(p: ExerciseParams): string {
   const keyId = p.rootName ?? pitchClassName(p.rootPc, 'sharp');
   return `${p.tuning.id}|${scaleId}|${keyId}|${family}`;
 }
+
+/**
+ * Sub-counter key inside a cell's perVariantId map. Cells are already
+ * bucketed by family, so the variantId doesn't repeat family info
+ * (except for agility, where the two distinct exercise kinds share
+ * the family and need to be told apart).
+ */
+export function variantIdFor(v: Variant): string {
+  switch (v.kind) {
+    case 'plain': return 'plain';
+    case 'multiOctaveA': return `A:${v.octaves}`;
+    case 'multiOctaveB': return `B:${v.octaves}`;
+    case 'consecutive': return String(v.groupSize);
+    case 'mirror': return String(v.peakSize);
+    case 'intervalWalk': return String(v.interval);
+    case 'arpeggioCycle': return `${v.size}:${v.direction}:${v.inversion}`;
+    case 'bigX': return `bigX:${v.direction}:${v.spelling}`;
+    case 'spider': return `spider:${v.direction}:${v.spelling}`;
+  }
+}

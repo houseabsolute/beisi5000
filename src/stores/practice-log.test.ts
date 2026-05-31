@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { familyForVariant, cellKeyFor } from './practice-log';
+import { familyForVariant, cellKeyFor, variantIdFor } from './practice-log';
 import { SCALES } from '../theory/scales';
 import { TUNINGS } from '../theory/tunings';
 import { pitchClass } from '../theory/notes';
@@ -91,5 +91,44 @@ describe('cellKeyFor', () => {
     const p1 = baseParams({ kind: 'plain' }, 'major');
     const p2 = baseParams({ kind: 'plain' }, 'dorian');
     expect(cellKeyFor(p1)).not.toBe(cellKeyFor(p2));
+  });
+});
+
+describe('variantIdFor', () => {
+  test('plain → plain', () => {
+    expect(variantIdFor({ kind: 'plain' })).toBe('plain');
+  });
+  test('multiOctaveA(2 oct) → A:2', () => {
+    expect(variantIdFor({ kind: 'multiOctaveA', octaves: 2 })).toBe('A:2');
+  });
+  test('multiOctaveA(3 oct) → A:3', () => {
+    expect(variantIdFor({ kind: 'multiOctaveA', octaves: 3 })).toBe('A:3');
+  });
+  test('multiOctaveB(2 oct) → B:2', () => {
+    expect(variantIdFor({ kind: 'multiOctaveB', octaves: 2 })).toBe('B:2');
+  });
+  test('consecutive(group=4) → 4', () => {
+    expect(variantIdFor({ kind: 'consecutive', groupSize: 4 })).toBe('4');
+  });
+  test('mirror(peak=3) → 3', () => {
+    expect(variantIdFor({ kind: 'mirror', peakSize: 3 })).toBe('3');
+  });
+  test('walkUp(interval 5) → 5  (direction lives in the family key)', () => {
+    expect(variantIdFor({ kind: 'intervalWalk', interval: 5, intervalDir: 'up' })).toBe('5');
+  });
+  test('walkDown(interval 7) → 7', () => {
+    expect(variantIdFor({ kind: 'intervalWalk', interval: 7, intervalDir: 'down' })).toBe('7');
+  });
+  test('arpeggio triad allUp root → 3:allUp:0', () => {
+    expect(variantIdFor({ kind: 'arpeggioCycle', size: 3, direction: 'allUp', inversion: 0 })).toBe('3:allUp:0');
+  });
+  test('arpeggio 7th 1st inv upDown → 4:upDown:1', () => {
+    expect(variantIdFor({ kind: 'arpeggioCycle', size: 4, direction: 'upDown', inversion: 1 })).toBe('4:upDown:1');
+  });
+  test('bigX forward sharp → bigX:forward:sharp', () => {
+    expect(variantIdFor({ kind: 'bigX', startString: 0, direction: 'forward', spelling: 'sharp' })).toBe('bigX:forward:sharp');
+  });
+  test('spider reverse flat → spider:reverse:flat', () => {
+    expect(variantIdFor({ kind: 'spider', lowerString: 1, direction: 'reverse', spelling: 'flat' })).toBe('spider:reverse:flat');
   });
 });
