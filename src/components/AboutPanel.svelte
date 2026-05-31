@@ -25,22 +25,25 @@
     <section>
       <p class="lede">
         A randomized bass-guitar practice app. Hit
-        <strong>Next exercise</strong> for a fresh scale to work through, set
-        a metronome alongside, and grind.
+        <strong>✓ Done</strong> when you've played the exercise (it gets
+        logged) or <strong>Skip</strong> to move on without logging, set a
+        metronome alongside, and grind.
       </p>
     </section>
 
     <section>
       <h3>How it works</h3>
       <p>
-        Each tap of <strong>Next exercise</strong> picks one combination
-        from the universe of enabled options: a key, a scale, a variant, a
-        hand position, and a bass tuning. The same exercise won't appear
-        again for a while — the picker excludes the last 20 picks.
+        Each tap of <strong>✓ Done</strong> or <strong>Skip</strong>
+        picks one combination from the universe of enabled options: a key,
+        a scale, a variant, a hand position, a rhythm, and a bass tuning.
+        The same exercise won't appear again for a while — the picker
+        excludes the last 20 picks.
       </p>
       <p>
         Each exercise plays ascending and descending. Walking-interval
-        exercises end with a return to the tonic root.
+        exercises end with a return to the tonic root. Arpeggio cycles
+        run every chord rooted on each scale degree in turn.
       </p>
     </section>
 
@@ -111,7 +114,53 @@
           Walking 6ths&nbsp;↑ means the second note of each pair is a 6th
           ABOVE the first).
         </li>
+        <li>
+          <strong>Arpeggio cycles</strong> — diatonic chord arpeggios
+          (triad, 7th, 9th, 11th, 13th) rooted on each scale degree in
+          turn. Four directions (↑↑, ↑↓, ↓↑, ↕). The <strong>↑↑</strong>
+          direction also supports inversions (1st&hellip;6th, depending
+          on chord size) — selectable independently in Settings.
+        </li>
+        <li>
+          <strong>Hand-agility drills</strong> — <em>Big&nbsp;X</em> and
+          <em>Spider</em>, chromatic finger-coordination patterns
+          scanning frets 1&nbsp;→&nbsp;12&nbsp;→&nbsp;1. No key — pure
+          technique. Always in eighth notes regardless of rhythm settings.
+        </li>
       </ul>
+    </section>
+
+    <section>
+      <h3>Rhythms</h3>
+      <p>
+        Six rhythm patterns can be enabled in Settings; the picker rotates
+        through whichever are on. Default is Quarter only.
+      </p>
+      <ul>
+        <li><strong>♩ Quarter</strong> — one note per beat.</li>
+        <li><strong>♪ Eighth</strong> — two per beat.</li>
+        <li><strong>♪₃ Triplet</strong> — three per beat.</li>
+        <li>
+          <strong>(8ss) / (s8s) / (ss8)</strong> — an eighth plus two
+          sixteenths in three permutations.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h3>Practice history</h3>
+      <p>
+        The <strong>📊</strong> button opens the history panel. Every
+        <strong>✓ Done</strong> click logs an entry against a (scale, key,
+        variant family) cell. The panel shows total sessions, coverage
+        percentage (over the cells your Settings currently enable), and
+        today's count, plus a "neglected first" list sorted so the
+        unpractised cells surface to the top.
+      </p>
+      <p>
+        Click any row to load a random exercise from that cell.
+        <strong>Clear</strong> wipes all history (with confirmation).
+      </p>
     </section>
 
     <section>
@@ -131,7 +180,7 @@
       </ul>
       <p>
         Tempo is randomly picked within your configured min/max range
-        every time you tap <strong>Next exercise</strong>.
+        every time you tap <strong>✓ Done</strong> or <strong>Skip</strong>.
       </p>
     </section>
 
@@ -140,8 +189,9 @@
       <p>
         The gear icon opens the settings panel. Everything is persisted to
         your browser's local storage — no account, no backend. Toggling
-        scales / keys / hand positions / variants filters which exercises
-        the picker can choose.
+        scales, keys, hand positions, variants, arpeggio sizes /
+        directions / inversions, agility drills, and rhythms filters
+        which exercises the picker can choose.
       </p>
     </section>
 
@@ -149,7 +199,8 @@
       <h3>Keyboard shortcuts</h3>
       <ul class="shortcuts">
         <li><kbd>Space</kbd> — start / stop the metronome</li>
-        <li><kbd>N</kbd> — next exercise (random)</li>
+        <li><kbd>D</kbd> — mark this exercise done and pick next</li>
+        <li><kbd>N</kbd> — skip without logging (pick next)</li>
         <li><kbd>P</kbd> — previous exercise (browser back)</li>
       </ul>
     </section>
