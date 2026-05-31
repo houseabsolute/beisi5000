@@ -26,6 +26,7 @@
   import { isHandPositionMeaningful } from './exercises/scale-generator';
   import { settings } from './stores/settings';
   import { history } from './stores/history';
+  import { practiceLog } from './stores/practice-log';
   import {
     emitAlphaTex,
     type DisplayMode,
@@ -62,6 +63,13 @@
     const params = pickWeightedRandom(universe, history.asSet());
     if (!params) return;
     setCurrentExercise(params);
+  }
+
+  function doneAndNext(): void {
+    if (currentExercise) {
+      practiceLog.recordDone(currentExercise.params);
+    }
+    pickNext();
   }
 
   function setCurrentExercise(params: ExerciseParams): void {
@@ -148,6 +156,9 @@
       if (e.key === 'n' || e.key === 'N') {
         e.preventDefault();
         pickNext();
+      } else if (e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        doneAndNext();
       } else if (e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         window.history.back();
@@ -379,11 +390,20 @@
           ←
         </button>
         <button
-          class="next-btn"
-          onclick={pickNext}
-          title="Next exercise (N)"
+          class="done-btn"
+          onclick={doneAndNext}
+          title="Mark done and pick next (D)"
+          type="button"
         >
-          Next exercise →
+          ✓ Done
+        </button>
+        <button
+          class="skip-btn"
+          onclick={pickNext}
+          title="Skip without logging (N)"
+          type="button"
+        >
+          Skip →
         </button>
       </div>
 
@@ -594,7 +614,21 @@
   .prev-btn:hover {
     background: var(--border);
   }
-  .next-btn {
+  .done-btn {
+    flex: 1;
+    padding: 14px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .done-btn:hover {
+    background: #0ea371;
+  }
+  .skip-btn {
     flex: 1;
     padding: 14px;
     background: var(--accent);
@@ -605,7 +639,7 @@
     font-weight: 600;
     cursor: pointer;
   }
-  .next-btn:hover {
+  .skip-btn:hover {
     background: var(--accent-hover);
   }
   details {
@@ -663,7 +697,8 @@
     .exercise-header {
       flex-wrap: wrap;
     }
-    .next-btn {
+    .done-btn,
+    .skip-btn {
       padding: 12px;
       font-size: 14px;
     }
