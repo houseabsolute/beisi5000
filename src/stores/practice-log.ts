@@ -1,4 +1,4 @@
-import { writable, type Writable } from 'svelte/store';
+import { writable, get, type Writable } from 'svelte/store';
 import type { ExerciseParams, Variant, Rhythm } from '../exercises/types';
 import { pitchClassName } from '../theory/notes';
 import { SCALES } from '../theory/scales';
@@ -132,6 +132,8 @@ function persist(state: PracticeLogState): void {
 
 function createPracticeLogStore(): Writable<PracticeLogState> & {
   recordDone: (params: ExerciseParams) => void;
+  todayCount: () => number;
+  coverage: (enabled: ReadonlySet<string>) => { played: number; total: number };
   clear: () => void;
 } {
   const store = writable<PracticeLogState>(load());
@@ -169,6 +171,21 @@ function createPracticeLogStore(): Writable<PracticeLogState> & {
           recentEvents: events,
         };
       });
+    },
+    todayCount() {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const startMs = start.getTime();
+      const s = get(store);
+      return s.recentEvents.filter((e) => e.ts >= startMs).length;
+    },
+    coverage(enabled: ReadonlySet<string>) {
+      const s = get(store);
+      let played = 0;
+      for (const key of enabled) {
+        if (s.cells[key]?.count) played++;
+      }
+      return { played, total: enabled.size };
     },
     clear() {
       store.set(emptyState());
