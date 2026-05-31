@@ -41,6 +41,13 @@ export interface ExerciseParams {
    */
   useOpenStrings?: boolean;
   /**
+   * Optional scale ID (e.g. 'major', 'naturalMinor'). When set, the
+   * practice-log can build a cell key without reverse-looking-up the
+   * scale name. The picker sets this; older test fixtures omit it
+   * and fall back to name-based lookup.
+   */
+  scaleId?: import('../theory/scales').ScaleId;
+  /**
    * Display name for the root that includes spelling (e.g., "B♭" vs "A♯").
    * Affects the displayed exercise title and the AlphaTex key signature.
    */

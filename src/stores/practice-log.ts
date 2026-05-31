@@ -54,7 +54,7 @@ export function cellKeyFor(p: ExerciseParams): string {
   if (family === 'agility') {
     return `${p.tuning.id}|||agility`;
   }
-  const scaleId = scaleIdFor(p.scale.name);
+  const scaleId = p.scaleId ?? scaleIdFor(p.scale.name);
   const keyId = p.rootName ?? pitchClassName(p.rootPc, 'sharp');
   return `${p.tuning.id}|${scaleId}|${keyId}|${family}`;
 }
@@ -100,7 +100,7 @@ export interface PracticeLogState {
 }
 
 const STORAGE_KEY = 'bass-practice:practice-log:v1';
-export const RECENT_CAP = 100;
+const RECENT_CAP = 100;
 
 function emptyState(): PracticeLogState {
   return { cells: {}, recentEvents: [] };
@@ -133,7 +133,6 @@ function persist(state: PracticeLogState): void {
 function createPracticeLogStore(): Writable<PracticeLogState> & {
   recordDone: (params: ExerciseParams) => void;
   todayCount: () => number;
-  coverage: (enabled: ReadonlySet<string>) => { played: number; total: number };
   clear: () => void;
 } {
   const store = writable<PracticeLogState>(load());
@@ -178,14 +177,6 @@ function createPracticeLogStore(): Writable<PracticeLogState> & {
       const startMs = start.getTime();
       const s = get(store);
       return s.recentEvents.filter((e) => e.ts >= startMs).length;
-    },
-    coverage(enabled: ReadonlySet<string>) {
-      const s = get(store);
-      let played = 0;
-      for (const key of enabled) {
-        if (s.cells[key]?.count) played++;
-      }
-      return { played, total: enabled.size };
     },
     clear() {
       store.set(emptyState());

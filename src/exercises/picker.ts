@@ -49,8 +49,9 @@ export function paramsFromKey(key: string): ExerciseParams | null {
   const openTag = parts[parts.length - 1];
   const tuning = TUNINGS[tuningId as keyof typeof TUNINGS];
   if (!tuning) return null;
-  const scaleEntry = Object.values(SCALES).find((s) => s.name === scaleName);
-  if (!scaleEntry) return null;
+  const scaleEntryPair = (Object.entries(SCALES) as [ScaleId, (typeof SCALES)[ScaleId]][]).find(([, s]) => s.name === scaleName);
+  if (!scaleEntryPair) return null;
+  const [parsedScaleId, scaleEntry] = scaleEntryPair;
   const keyEntry = Object.values(KEYS_BY_ID).find((k) => k.name === rootName);
   if (!keyEntry) return null;
   if (
@@ -179,6 +180,7 @@ export function paramsFromKey(key: string): ExerciseParams | null {
     scale: scaleEntry,
     rootPc: keyEntry.pc,
     rootName: keyEntry.name,
+    scaleId: parsedScaleId,
     variant,
     scaleDirection: 'updown',
     handPosition,
@@ -504,6 +506,7 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
             scale,
             rootPc,
             rootName,
+            scaleId,
             keySignature,
             keySignatureLabel,
             spelling,
@@ -535,6 +538,7 @@ export function generateUniverse(s: Settings): ExerciseParams[] {
                 scale,
                 rootPc,
                 rootName,
+                scaleId,
                 keySignature,
                 keySignatureLabel,
                 spelling,

@@ -280,31 +280,3 @@ describe('practiceLog.todayCount', () => {
   });
 });
 
-describe('practiceLog.coverage', () => {
-  beforeEach(() => {
-    if (typeof localStorage !== 'undefined') localStorage.clear();
-    practiceLog.clear();
-  });
-
-  test('empty log against 5 enabled cells → played=0 total=5', () => {
-    const enabled = new Set(['a', 'b', 'c', 'd', 'e']);
-    expect(practiceLog.coverage(enabled)).toEqual({ played: 0, total: 5 });
-  });
-
-  test('played cells outside the enabled set do not count', () => {
-    practiceLog.recordDone(baseParams({ kind: 'plain' })); // creates 'fourStringEADG|major|C|plain'
-    const enabled = new Set(['x', 'y']);
-    expect(practiceLog.coverage(enabled)).toEqual({ played: 0, total: 2 });
-  });
-
-  test('played cells inside the enabled set count once each', () => {
-    practiceLog.recordDone(baseParams({ kind: 'plain' }));
-    practiceLog.recordDone(baseParams({ kind: 'plain' })); // same cell twice — still 1 played
-    const enabled = new Set(['fourStringEADG|major|C|plain', 'fourStringEADG|major|D|plain']);
-    expect(practiceLog.coverage(enabled)).toEqual({ played: 1, total: 2 });
-  });
-
-  test('total=0 (no enabled cells) → played=0, total=0 (caller decides display)', () => {
-    expect(practiceLog.coverage(new Set())).toEqual({ played: 0, total: 0 });
-  });
-});
