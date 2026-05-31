@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach } from 'vitest';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { practiceLog } from './practice-log';
 import { familyForVariant, cellKeyFor, variantIdFor } from './practice-log';
@@ -156,5 +156,96 @@ describe('practiceLog store', () => {
     const s = get(practiceLog);
     expect(s.cells).toEqual({});
     expect(s.recentEvents).toEqual([]);
+  });
+});
+
+describe('practiceLog.recordDone', () => {
+  beforeEach(() => {
+    if (typeof localStorage !== 'undefined') localStorage.clear();
+    practiceLog.clear();
+  });
+
+  test('first recordDone creates a cell with count=1, both timestamps set, rhythm/hand/variant sub-counters', () => {
+    const tNow = 1_700_000_000_000;
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(tNow));
+    const params: ExerciseParams = {
+      ...baseParams({ kind: 'plain' }),
+      rhythm: 'quarter',
+    };
+    practiceLog.recordDone(params);
+    const s = get(practiceLog);
+    const cell = s.cells['fourStringEADG|major|C|plain'];
+    expect(cell).toBeDefined();
+    expect(cell.count).toBe(1);
+    expect(cell.firstPlayedTs).toBe(tNow);
+    expect(cell.lastPlayedTs).toBe(tNow);
+    expect(cell.perHand.front).toBe(1);
+    expect(cell.perRhythm.quarter).toBe(1);
+    expect(cell.perVariantId.plain).toBe(1);
+    vi.useRealTimers();
+  });
+
+  test('second recordDone bumps count and lastPlayedTs but not firstPlayedTs', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(1_000_000_000_000));
+    const params: ExerciseParams = { ...baseParams({ kind: 'plain' }), rhythm: 'quarter' };
+    practiceLog.recordDone(params);
+    vi.setSystemTime(new Date(2_000_000_000_000));
+    practiceLog.recordDone(params);
+    const cell = get(practiceLog).cells['fourStringEADG|major|C|plain'];
+    expect(cell.count).toBe(2);
+    expect(cell.firstPlayedTs).toBe(1_000_000_000_000);
+    expect(cell.lastPlayedTs).toBe(2_000_000_000_000);
+    expect(cell.perHand.front).toBe(2);
+    expect(cell.perRhythm.quarter).toBe(2);
+    vi.useRealTimers();
+  });
+
+  test('different rhythm in same cell increments separate sub-counter', () => {
+    const p1: ExerciseParams = { ...baseParams({ kind: 'plain' }), rhythm: 'quarter' };
+    const p2: ExerciseParams = { ...baseParams({ kind: 'plain' }), rhythm: 'eighth' };
+    practiceLog.recordDone(p1);
+    practiceLog.recordDone(p2);
+    const cell = get(practiceLog).cells['fourStringEADG|major|C|plain'];
+    expect(cell.count).toBe(2);
+    expect(cell.perRhythm.quarter).toBe(1);
+    expect(cell.perRhythm.eighth).toBe(1);
+  });
+
+  test('different hand increments separate perHand', () => {
+    const front: ExerciseParams = { ...baseParams({ kind: 'plain' }), handPosition: 'front' };
+    const mid: ExerciseParams = { ...baseParams({ kind: 'plain' }), handPosition: 'mid' };
+    practiceLog.recordDone(front);
+    practiceLog.recordDone(mid);
+    const cell = get(practiceLog).cells['fourStringEADG|major|C|plain'];
+    expect(cell.perHand.front).toBe(1);
+    expect(cell.perHand.mid).toBe(1);
+  });
+
+  test('missing rhythm is skipped (no sub-counter mutation)', () => {
+    const params = baseParams({ kind: 'plain' });
+    expect(params.rhythm).toBeUndefined();
+    practiceLog.recordDone(params);
+    const cell = get(practiceLog).cells['fourStringEADG|major|C|plain'];
+    expect(cell.perRhythm).toEqual({});
+  });
+
+  test('arpeggio inversion is recorded in perVariantId', () => {
+    const params: ExerciseParams = {
+      ...baseParams({ kind: 'arpeggioCycle', size: 3, direction: 'allUp', inversion: 2 }),
+      rhythm: 'eighth',
+    };
+    practiceLog.recordDone(params);
+    const cell = get(practiceLog).cells['fourStringEADG|major|C|arpeggios'];
+    expect(cell.perVariantId['3:allUp:2']).toBe(1);
+  });
+
+  test('recentEvents is prepended (newest first) and capped at 100', () => {
+    for (let i = 0; i < 105; i++) {
+      practiceLog.recordDone(baseParams({ kind: 'plain' }));
+    }
+    const s = get(practiceLog);
+    expect(s.recentEvents.length).toBe(100);
   });
 });

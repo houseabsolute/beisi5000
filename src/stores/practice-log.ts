@@ -3,6 +3,7 @@ import type { ExerciseParams, Variant, Rhythm } from '../exercises/types';
 import { pitchClassName } from '../theory/notes';
 import { SCALES } from '../theory/scales';
 import type { ScaleId } from '../theory/scales';
+import { paramsKey } from '../exercises/picker';
 
 export type Family =
   | 'plain'
@@ -130,12 +131,45 @@ function persist(state: PracticeLogState): void {
 }
 
 function createPracticeLogStore(): Writable<PracticeLogState> & {
+  recordDone: (params: ExerciseParams) => void;
   clear: () => void;
 } {
   const store = writable<PracticeLogState>(load());
   store.subscribe(persist);
   return {
     ...store,
+    recordDone(params: ExerciseParams) {
+      const now = Date.now();
+      const cellKey = cellKeyFor(params);
+      const variantId = variantIdFor(params.variant);
+      store.update((s) => {
+        const prev = s.cells[cellKey];
+        // Deep-clone nested sub-counters so mutations produce new references,
+        // which is required for Svelte store subscribers to fire correctly.
+        const baseCell: CellStats = prev
+          ? { ...prev,
+              perHand: { ...prev.perHand },
+              perRhythm: { ...prev.perRhythm },
+              perVariantId: { ...prev.perVariantId },
+            }
+          : { count: 0, firstPlayedTs: now, lastPlayedTs: now, perHand: {}, perRhythm: {}, perVariantId: {} };
+        baseCell.count += 1;
+        baseCell.lastPlayedTs = now;
+        baseCell.perHand[params.handPosition] = (baseCell.perHand[params.handPosition] ?? 0) + 1;
+        if (params.rhythm) {
+          baseCell.perRhythm[params.rhythm] = (baseCell.perRhythm[params.rhythm] ?? 0) + 1;
+        }
+        baseCell.perVariantId[variantId] = (baseCell.perVariantId[variantId] ?? 0) + 1;
+        const events: PracticeEvent[] = [
+          { ts: now, cellKey, paramsKey: paramsKey(params) },
+          ...s.recentEvents,
+        ].slice(0, RECENT_CAP);
+        return {
+          cells: { ...s.cells, [cellKey]: baseCell },
+          recentEvents: events,
+        };
+      });
+    },
     clear() {
       store.set(emptyState());
     },
