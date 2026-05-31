@@ -5,6 +5,7 @@
   import SettingsPanel from './components/SettingsPanel.svelte';
   import AboutPanel from './components/AboutPanel.svelte';
   import BrowsePanel from './components/BrowsePanel.svelte';
+  import HistoryPanel from './components/HistoryPanel.svelte';
   import { generateExercise } from './exercises/scale-generator';
   import {
     generateUniverse,
@@ -40,6 +41,7 @@
   let panelOpen = $state(false);
   let aboutOpen = $state(false);
   let browseOpen = $state(false);
+  let historyOpen = $state(false);
   let currentExercise = $state<Exercise | null>(null);
   let currentTempo = $state(120);
   // Manual tempo override. When non-null, every new exercise keeps
@@ -244,6 +246,15 @@
     </button>
     <button
       class="iconbtn"
+      onclick={() => (historyOpen = true)}
+      aria-label="Practice history"
+      title="Practice history"
+      type="button"
+    >
+      📊
+    </button>
+    <button
+      class="iconbtn"
       onclick={() => (aboutOpen = true)}
       aria-label="About this app"
       title="About this app"
@@ -441,6 +452,11 @@
 <BrowsePanel
   open={browseOpen}
   onClose={() => (browseOpen = false)}
+  onPick={loadPicked}
+/>
+<HistoryPanel
+  open={historyOpen}
+  onClose={() => (historyOpen = false)}
   onPick={loadPicked}
 />
 
