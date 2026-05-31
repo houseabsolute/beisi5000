@@ -233,7 +233,7 @@
 </script>
 
 <header class="topbar">
-  <div class="brand">BèiSī 5000</div>
+  <div class="brand">BèiSī 貝斯 5000</div>
   <div class="topbar-actions">
     <button
       class="iconbtn"
