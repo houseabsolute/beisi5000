@@ -1,4 +1,6 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, beforeEach } from 'vitest';
+import { get } from 'svelte/store';
+import { practiceLog } from './practice-log';
 import { familyForVariant, cellKeyFor, variantIdFor } from './practice-log';
 import { SCALES } from '../theory/scales';
 import { TUNINGS } from '../theory/tunings';
@@ -130,5 +132,29 @@ describe('variantIdFor', () => {
   });
   test('spider reverse flat → spider:reverse:flat', () => {
     expect(variantIdFor({ kind: 'spider', lowerString: 1, direction: 'reverse', spelling: 'flat' })).toBe('spider:reverse:flat');
+  });
+});
+
+describe('practiceLog store', () => {
+  beforeEach(() => {
+    if (typeof localStorage !== 'undefined') localStorage.clear();
+    practiceLog.clear();
+  });
+
+  test('initial state has empty cells and empty recentEvents', () => {
+    const s = get(practiceLog);
+    expect(s.cells).toEqual({});
+    expect(s.recentEvents).toEqual([]);
+  });
+
+  test('clear() resets cells and recentEvents', () => {
+    practiceLog.update((s) => ({
+      cells: { 'foo|major|C|plain': { count: 1, firstPlayedTs: 1, lastPlayedTs: 1, perHand: {}, perRhythm: {}, perVariantId: {} } },
+      recentEvents: [{ ts: 1, cellKey: 'foo|major|C|plain', paramsKey: 'k' }],
+    }));
+    practiceLog.clear();
+    const s = get(practiceLog);
+    expect(s.cells).toEqual({});
+    expect(s.recentEvents).toEqual([]);
   });
 });

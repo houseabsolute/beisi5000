@@ -1,4 +1,5 @@
-import type { ExerciseParams, Variant } from '../exercises/types';
+import { writable, type Writable } from 'svelte/store';
+import type { ExerciseParams, Variant, Rhythm } from '../exercises/types';
 import { pitchClassName } from '../theory/notes';
 import { SCALES } from '../theory/scales';
 import type { ScaleId } from '../theory/scales';
@@ -76,3 +77,69 @@ export function variantIdFor(v: Variant): string {
     case 'spider': return `spider:${v.direction}:${v.spelling}`;
   }
 }
+
+export interface CellStats {
+  count: number;
+  firstPlayedTs: number;
+  lastPlayedTs: number;
+  perHand: { front?: number; mid?: number; back?: number };
+  perRhythm: Partial<Record<Rhythm, number>>;
+  perVariantId: Record<string, number>;
+}
+
+export interface PracticeEvent {
+  ts: number;
+  cellKey: string;
+  paramsKey: string;
+}
+
+export interface PracticeLogState {
+  cells: Record<string, CellStats>;
+  recentEvents: PracticeEvent[];
+}
+
+const STORAGE_KEY = 'bass-practice:practice-log:v1';
+export const RECENT_CAP = 100;
+
+function emptyState(): PracticeLogState {
+  return { cells: {}, recentEvents: [] };
+}
+
+function load(): PracticeLogState {
+  if (typeof localStorage === 'undefined') return emptyState();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return emptyState();
+    const parsed = JSON.parse(raw) as Partial<PracticeLogState>;
+    return {
+      cells: parsed.cells ?? {},
+      recentEvents: Array.isArray(parsed.recentEvents) ? parsed.recentEvents : [],
+    };
+  } catch {
+    return emptyState();
+  }
+}
+
+function persist(state: PracticeLogState): void {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // storage full / disabled — ignore
+  }
+}
+
+function createPracticeLogStore(): Writable<PracticeLogState> & {
+  clear: () => void;
+} {
+  const store = writable<PracticeLogState>(load());
+  store.subscribe(persist);
+  return {
+    ...store,
+    clear() {
+      store.set(emptyState());
+    },
+  };
+}
+
+export const practiceLog = createPracticeLogStore();
