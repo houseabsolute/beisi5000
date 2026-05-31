@@ -35,6 +35,92 @@
     return practiceLog.todayCount();
   });
 
+  interface Row {
+    cellKey: string;
+    label: string;       // e.g. "C Major — Walking ↑"
+    count: number;
+    lastPlayedTs: number | null;
+  }
+
+  const FAMILY_LABEL: Record<string, string> = {
+    plain: 'Plain scale',
+    multiOctave: 'Multi-octave',
+    consecutive: 'Consecutive groups',
+    mirror: 'Mirror groups',
+    walkUp: 'Walking ↑',
+    walkDown: 'Walking ↓',
+    arpeggios: 'Arpeggios',
+    agility: 'Agility',
+  };
+
+  // Universe entries are dense in (scale, key, family) combos — pick one
+  // params per cellKey so we can render the row label and replay later.
+  const sampleParamsByCell = $derived.by<Map<string, ExerciseParams>>(() => {
+    const m = new Map<string, ExerciseParams>();
+    for (const p of generateUniverse($settings)) {
+      const k = cellKeyFor(p);
+      if (!m.has(k)) m.set(k, p);
+    }
+    return m;
+  });
+
+  function rowLabel(p: ExerciseParams): string {
+    const family = cellKeyFor(p).split('|').pop() as string;
+    const familyLabel = FAMILY_LABEL[family] ?? family;
+    if (family === 'agility') {
+      return `${p.tuning.name} — Agility`;
+    }
+    const root = p.rootName ?? '';
+    return `${root} ${p.scale.name} — ${familyLabel}`;
+  }
+
+  const ROW_CAP = 50;
+  const rows = $derived.by<Row[]>(() => {
+    const out: Row[] = [];
+    for (const [cellKey, sampleParams] of sampleParamsByCell) {
+      const cell = $practiceLog.cells[cellKey];
+      out.push({
+        cellKey,
+        label: rowLabel(sampleParams),
+        count: cell?.count ?? 0,
+        lastPlayedTs: cell?.lastPlayedTs ?? null,
+      });
+    }
+    // Sort: never-played first, then oldest-played first.
+    out.sort((a, b) => {
+      if (a.count === 0 && b.count !== 0) return -1;
+      if (b.count === 0 && a.count !== 0) return 1;
+      if (a.count === 0 && b.count === 0) return a.label.localeCompare(b.label);
+      return (a.lastPlayedTs ?? 0) - (b.lastPlayedTs ?? 0);
+    });
+    return out.slice(0, ROW_CAP);
+  });
+
+  function pillText(r: Row): string {
+    if (r.count === 0) return 'never';
+    const days = Math.floor((Date.now() - (r.lastPlayedTs ?? 0)) / (24 * 60 * 60 * 1000));
+    const dayStr = days === 0 ? 'today' : `${days}d`;
+    return r.count > 1 ? `${dayStr} · ${r.count}×` : dayStr;
+  }
+
+  function pillClass(r: Row): string {
+    if (r.count === 0) return 'pill never';
+    const days = Math.floor((Date.now() - (r.lastPlayedTs ?? 0)) / (24 * 60 * 60 * 1000));
+    if (days > 14) return 'pill old';
+    return 'pill fresh';
+  }
+
+  function pickRandomFromCell(cellKey: string): void {
+    const matches: ExerciseParams[] = [];
+    for (const p of generateUniverse($settings)) {
+      if (cellKeyFor(p) === cellKey) matches.push(p);
+    }
+    if (matches.length === 0) return;
+    const pick = matches[Math.floor(Math.random() * matches.length)];
+    onPick(pick);
+    onClose();
+  }
+
   function confirmClear(): void {
     if (typeof window === 'undefined') return;
     if (window.confirm('Clear all practice history?')) {
@@ -76,10 +162,24 @@
     </div>
   </div>
 
-  {#if totalSessions === 0}
+  {#if rows.length === 0}
     <p class="empty">No history yet — click ✓ Done after practicing an exercise to start tracking.</p>
   {:else}
-    <p class="placeholder">Neglected list goes here (Task 8).</p>
+    <h3 class="section-title">Neglected first</h3>
+    <ul class="rows">
+      {#each rows as r (r.cellKey)}
+        <li>
+          <button
+            class="row-btn"
+            onclick={() => pickRandomFromCell(r.cellKey)}
+            type="button"
+          >
+            <span class="row-label">{r.label}</span>
+            <span class={pillClass(r)}>{pillText(r)}</span>
+          </button>
+        </li>
+      {/each}
+    </ul>
   {/if}
 </aside>
 
@@ -167,11 +267,64 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  .empty,
-  .placeholder {
+  .empty {
     color: var(--text-dim);
     font-size: 13px;
     text-align: center;
     padding: 24px 8px;
+  }
+  .section-title {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 4px 0 8px 0;
+  }
+  .rows {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .rows li {
+    margin: 0;
+  }
+  .row-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 4px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 13px;
+  }
+  .row-btn:hover {
+    background: var(--panel-2);
+  }
+  .row-label {
+    flex: 1;
+  }
+  .pill {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+  .pill.never {
+    background: rgba(248, 113, 113, 0.15);
+    color: #f87171;
+  }
+  .pill.old {
+    background: rgba(253, 224, 71, 0.15);
+    color: #d4a72c;
+  }
+  .pill.fresh {
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
   }
 </style>
